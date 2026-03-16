@@ -5,6 +5,8 @@ import 'package:medzsite/pages/health_Post.dart';
 import 'package:medzsite/pages/login.dart';
 import 'package:medzsite/pages/prescriptions.dart';
 import 'package:medzsite/pages/profile.dart';
+import 'package:medzsite/pages/product_page.dart';
+import 'package:medzsite/pages/products_page.dart';
 import 'package:medzsite/pages/reels.dart';
 import 'pages/home_page.dart';
 class App extends StatelessComponent {
@@ -13,6 +15,17 @@ class App extends StatelessComponent {
     return div(classes: 'app-container', [
       Router(routes: [
         Route(path: '/', builder: (context, state) => HomePage()),
+        Route(path: '/products', builder: (context, state) => ProductsPage()),
+        Route(
+          path: '/product/:id',
+          builder: (context, state) {
+            final id = int.tryParse(state.params['id'] ?? '');
+            if (id == null) {
+              return ProductsPage();
+            }
+            return ProductPage(productId: id);
+          },
+        ),
         Route(path: '/reels', builder: (context, state) => ReelsSection()),
         Route(path: '/health-posts', builder: (context, state) => HorizontalPosts()),
         Route(path: '/profile', builder: (context, state) => ProfilePage(
@@ -30,5 +43,3 @@ class App extends StatelessComponent {
     ]);
   }
 }
-
-
