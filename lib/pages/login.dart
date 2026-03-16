@@ -1,0 +1,216 @@
+﻿import 'dart:convert';
+import 'package:jaspr/jaspr.dart';
+import 'package:jaspr/dom.dart';
+import 'package:http/http.dart' as http;
+import 'package:firebase_dart/firebase_dart.dart';
+import 'package:jaspr_router/jaspr_router.dart';
+
+class MobileLoginPage extends StatefulComponent {
+  const MobileLoginPage({super.key});
+
+  @override
+  State<MobileLoginPage> createState() => _MobileLoginPageState();
+}
+
+class _MobileLoginPageState extends State<MobileLoginPage> {
+
+  String phone = '';
+  String otp = '';
+
+  bool isLoading = false;
+  bool showOtpBox = false;
+
+  String reqId = '';
+
+  //================ SEND OTP ==================
+
+  Future<void> sendOtp() async {
+
+    phone = phone.trim();
+    if(phone.isEmpty) return;
+
+    setState(()=> isLoading = true);
+
+    const url =
+        "https://us-central1-medz-9eda1.cloudfunctions.net/sendMsg91Otp";
+
+    final response = await http.post(
+      Uri.parse(url),
+      headers: {'Content-Type':'application/json'},
+      body: jsonEncode({'phoneNumber': phone}),
+    );
+
+    print('sendOtp status: ${response.statusCode}');
+    print('sendOtp body: ${response.body}');
+
+    final data = jsonDecode(response.body);
+
+    if(data['success'] == true){
+
+      setState(() {
+        reqId = data['reqId'];
+        showOtpBox = true;
+      });
+
+    }
+
+    setState(()=> isLoading = false);
+  }
+
+  //================ VERIFY OTP ==================
+
+  Future<void> verifyOtp() async {
+
+    phone = phone.trim();
+    otp = otp.trim();
+    if (phone.isEmpty || otp.isEmpty || reqId.isEmpty) return;
+
+    const url =
+        "https://us-central1-medz-9eda1.cloudfunctions.net/verifyMsg91Otp";
+
+    final response = await http.post(
+      Uri.parse(url),
+      headers: {'Content-Type':'application/json'},
+      body: jsonEncode({
+        'phoneNumber': phone,
+        'otp': otp,
+        'reqId': reqId
+      }),
+    );
+
+    print('verifyOtp status: ${response.statusCode}');
+    print('verifyOtp body: ${response.body}');
+
+    final data = jsonDecode(response.body);
+
+    if(data['success'] == true){
+
+      String token = data['token'];
+
+      await FirebaseAuth.instance.signInWithCustomToken(token);
+
+      // redirect home
+      context.push('/');
+
+    }
+  }
+
+  //================ GUEST LOGIN ==================
+
+  Future<void> guestLogin() async {
+
+    try {
+      await FirebaseAuth.instance.signInAnonymously();
+    } catch (_) {
+      // Even if auth fails, still route the user as requested.
+    }
+
+    context.push('/');
+
+  }
+
+  //================ UI ==================
+
+  @override
+  Component build(BuildContext context) {
+
+    return div(classes:'login-page', [
+
+      div(classes:'login-card', [
+
+        div(classes:'login-hero', [
+          img(
+            src: '/images/108medz%20logo.png',
+            alt: '108 Medz',
+            classes: 'login-logo',
+          ),
+
+          h1(classes:'login-title', [text("108 Medz")]),
+
+          p(classes:'login-subtitle', [text("Save Upto 70% on Medicines")]),
+        ]),
+
+        div(classes:'login-section', [
+          h2(classes:'login-section-title', [text("Get Started")]),
+          p(classes:'login-section-sub', [text("Enter your WhatsApp number")]),
+
+          div(classes:'login-input-group', [
+            span(classes:'login-prefix', [text("+91")]),
+
+            input(
+              classes:'login-input',
+              attributes:{
+                'placeholder':'Enter mobile number',
+                'type':'tel',
+                'inputmode':'numeric'
+              },
+              events:{
+                'input': (e){
+                  phone = (e.target as dynamic).value;
+                }
+              }
+            ),
+          ]),
+        ]),
+
+        button(
+          classes:'login-btn login-btn-primary',
+          events:{'click':(_)=> sendOtp()},
+          [text(isLoading ? "Sending..." : "Get OTP")]
+        ),
+
+        button(
+          classes:'login-btn login-btn-ghost',
+          events:{'click':(_)=> guestLogin()},
+          [text("Login as Guest")]
+        ),
+
+      ]),
+
+      /// OTP POPUP
+      if(showOtpBox)
+        div(classes:'otp-popup',[
+
+          div(classes:'otp-card',[
+
+            h3(classes:'otp-title', [text("OTP Verification")]),
+
+            input(
+              classes:'otp-input',
+              attributes:{
+                'placeholder':'Enter OTP',
+                'type':'number',
+                'inputmode':'numeric'
+              },
+              events:{
+                'input': (e){
+                  otp = (e.target as dynamic).value;
+                }
+              }
+            ),
+
+            button(
+              classes:'login-btn login-btn-primary',
+              events:{'click':(_)=> verifyOtp()},
+              [text("Verify & Login")]
+            ),
+
+            button(
+              classes:'login-btn login-btn-ghost',
+              events:{
+                'click':(_){
+                  setState(()=> showOtpBox = false);
+                }
+              },
+              [text("Cancel")]
+            )
+
+          ])
+
+        ])
+
+    ]);
+  }
+}
+
+

@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "61765534445",
+    "project_id": "medz-9eda1",
+    "storage_bucket": "medz-9eda1.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:61765534445:android:de436a1829f2c2bcd002e4",
+        "android_client_info": {
+          "package_name": "com.redmediasolutions.crm108medz"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDpzJgsT-qVjCFnSSRoQX-F8nksxEVywWI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:61765534445:android:8eae536504d5f18fd002e4",
+        "android_client_info": {
+          "package_name": "com.redmediasolutions.janman"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDpzJgsT-qVjCFnSSRoQX-F8nksxEVywWI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

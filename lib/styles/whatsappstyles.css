@@ -1,0 +1,97 @@
+/* The InkWell effect */
+.inkwell {
+    transition: background-color 0.2s ease, transform 0.1s ease, filter 0.2s ease;
+    user-select: none;
+    cursor: pointer;
+}
+
+.inkwell:hover {
+    filter: brightness(1.1);
+}
+
+.inkwell:active {
+    transform: scale(0.98);
+}
+
+/* Card Styling based on your image */
+.upload-card {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 24px 32px;
+    background: linear-gradient(90deg, #1a3683 0%, #162d6d 100%);
+    border-radius: 12px;
+    color: white;
+    text-decoration: none;
+    min-height: 100px;
+}
+
+.upload-card-text h3 {
+    margin: 0 0 8px 0;
+    font-size: 24px;
+    font-weight: 600;
+}
+
+.upload-card-text p {
+    margin: 0;
+    font-size: 16px;
+    opacity: 0.9;
+}
+
+/* The Green WhatsApp Circle */
+.whatsapp-circle {
+    background-color: #25d366;
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+}
+
+.whatsapp-circle span {
+    color: white;
+    font-size: 28px !important;
+}
+/* Container for the buttons */
+.quick-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 12px; /* Spacing between the two buttons */
+    margin-top: 16px;
+    width: 100%;
+}
+
+/* Base button styling */
+.btn-action {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    padding: 18px;
+    border-radius: 16px; /* High border radius like the image */
+    font-weight: 700;
+    font-size: 18px;
+    border: none;
+    width: 100%;
+    cursor: pointer;
+    transition: transform 0.1s ease;
+}
+
+/* Top Button: Light Blue */
+.btn-prescription {
+    background-color: #eff6ff; /* Very light blue */
+    color: #1a3683; /* Deep navy text */
+}
+
+/* Bottom Button: Deep Navy */
+.btn-enquire {
+    background-color: #12295d; /* Match the navy in the image */
+    color: white;
+}
+
+/* Icon specific sizing */
+.btn-action span {
+    font-size: 24px !important;
+}
