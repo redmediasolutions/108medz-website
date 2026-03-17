@@ -83,7 +83,7 @@ class _ReelsSectionState extends State<ReelsSection> {
       return docs.map((doc) {
         final fields = doc['fields'] as Map<String, dynamic>? ?? {};
         String? str(String key) => fields[key]?['stringValue']?.toString();
-        bool bool(String key) => fields[key]?['booleanValue'] == true;
+        bool(String key) => fields[key]?['booleanValue'] == true;
 
         return {
           'id': (doc['name'] as String?)?.split('/').last ?? '',
