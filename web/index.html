@@ -2,32 +2,15 @@
 <html>
 <head>
   <meta charset="UTF-8">
-  <title>108 Medz</title>
+  <title>108 MEDZ</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Affordable medicines and skincare delivered to your doorstep.">
+  <link href="styles.css" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" rel="stylesheet">
 </head>
 <body>
   <div id="output"></div>
-
-  <!-- ✅ Firebase -->
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-    import { getAuth } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-    import { getFirestore } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-
-    const firebaseConfig = {
-      apiKey: "XXXX",
-      authDomain: "XXXX.firebaseapp.com",
-      projectId: "XXXX",
-      storageBucket: "XXXX.appspot.com",
-      messagingSenderId: "XXXX",
-      appId: "XXXX"
-    };
-
-    const app = initializeApp(firebaseConfig);
-
-    window.firebaseApp = app;
-    window.auth = getAuth(app);
-    window.db = getFirestore(app);
-  </script>
-
+  <script src="main.client.dart.js" defer></script>
 </body>
 </html>
