@@ -2,6 +2,7 @@ import 'package:jaspr/dom.dart';
 import 'package:jaspr/jaspr.dart';
 import 'package:jaspr_router/jaspr_router.dart';
 import 'package:medzsite/pages/health_Post.dart';
+import 'package:medzsite/pages/home_page.dart';
 import 'package:medzsite/pages/login.dart';
 import 'package:medzsite/pages/account_deletion.dart';
 import 'package:medzsite/pages/prescriptions.dart';
@@ -10,7 +11,7 @@ import 'package:medzsite/pages/product_page.dart';
 import 'package:medzsite/pages/products_page.dart';
 import 'package:medzsite/pages/reels.dart';
 import 'package:medzsite/pages/webview_page.dart';
-import 'pages/home_page.dart';
+
 class App extends StatelessComponent {
   @override
   Component build(BuildContext context) {

@@ -1,8 +1,11 @@
 ﻿// ignore_for_file: deprecated_member_use
 
+import 'dart:convert';
+
 import 'package:jaspr/dom.dart';
 import 'package:jaspr/jaspr.dart';
 import 'package:jaspr_router/jaspr_router.dart';
+import 'package:http/http.dart' as http;
 import 'package:medzsite/component.dart';
 import 'package:medzsite/model/cart_item.dart';
 import 'package:medzsite/model/products.dart';
@@ -21,6 +24,7 @@ class _HomePageState extends State<HomePage> {
   bool showCallPopup = false;
   List<Product> _products = [];
   List<dynamic> _categories = [];
+  List<Map<String, dynamic>> _homeCategories = [];
   String _searchQuery = '';
 
   bool _isLoading = true;
@@ -44,10 +48,12 @@ if (showCallPopup) _callPopup();
       create: () => Future.wait([
         _apiService.fetchCategories(),
         _apiService.fetchProductsPage(1),
+        _fetchHomeCategories(),
       ]),
       update: (List<dynamic> data) {
         _categories = data[0];
         _products = data[1];
+        _homeCategories = (data[2] as List).cast<Map<String, dynamic>>();
         _isLoading = false;
       },
       builder: (context) {
@@ -341,7 +347,7 @@ if (showCallPopup) _callPopup();
                   });
                 }
               },
-              [text('⌄')])
+              [text('?')])
         ]),
 
         p([
@@ -394,45 +400,51 @@ if (showCallPopup) _callPopup();
   //====================CATEGORIES====================
 
   Component _buildDynamicCategories() {
-    final seenNames = <String>{};
-    final List<dynamic> uniqueCategories = [];
+    final wooIds = _categories
+        .map((c) => c['id'])
+        .whereType<int>()
+        .toSet();
 
-    for (final cat in _categories) {
-      final name = cat['name']?.toString();
-      final normName = name?.trim().toLowerCase();
-
-      if (normName != null && seenNames.add(normName)) {
-        uniqueCategories.add(cat);
-      }
-    }
+    final visible = _homeCategories
+        .where((c) => c['categoryId'] is int && wooIds.contains(c['categoryId']))
+        .toList()
+      ..sort((a, b) => (a['order'] as int).compareTo(b['order'] as int));
 
     return section([
       h2(classes: 'section-header', [text('Browse Categories')]),
       div(classes: 'category-scroll', [
-        for (var cat in uniqueCategories)
-          div(
-              classes: 'category-pill',
-              events: {
-                'click': (event) => _filterByCategory(cat['id']),
-              },
-              [
-                div(classes: 'category-pill-img', [
-                  img(
-                      src: cat['image'] != null
-                          ? cat['image']['src']
-                          : 'assets/placeholder.png',
-                      attributes: {
-                        'loading': 'lazy',
-                        'referrerpolicy': 'no-referrer',
-                        'onerror': "this.src='assets/placeholder.png';"
-                      })
-                ]),
-                div(classes: 'category-pill-text', [
-                  span(classes: 'category-pill-title',
-                      [text(cat['name'] ?? 'Category')]),
-                  span(classes: 'category-pill-sub', [text('Care')]),
+        if (visible.isEmpty)
+          div(classes: 'empty-state', [text('No categories found.')])
+        else
+          for (var cat in visible)
+            div(
+                classes: 'category-pill',
+                attributes: {
+                  if ((cat['backgroundImage'] as String?)?.isNotEmpty == true)
+                    'style': "background-image:url('${cat['backgroundImage']}');background-size:cover;background-position:center;",
+                },
+                events: {
+                  'click': (event) => _filterByCategory(cat['categoryId']),
+                },
+                [
+                  div(classes: 'category-pill-img', [
+                    img(
+                        src: (cat['categoryIcon'] as String?)?.isNotEmpty == true
+                            ? cat['categoryIcon']
+                            : 'assets/placeholder.png',
+                        attributes: {
+                          'loading': 'lazy',
+                          'referrerpolicy': 'no-referrer',
+                          'onerror': "this.src='assets/placeholder.png';"
+                        })
+                  ]),
+                  div(classes: 'category-pill-text', [
+                    span(classes: 'category-pill-title',
+                        [text(cat['categoryTitle1'] ?? 'Category')]),
+                    span(classes: 'category-pill-sub',
+                        [text(cat['categoryTitle2'] ?? '')]),
+                  ])
                 ])
-              ])
       ])
     ]);
   }
@@ -630,8 +642,92 @@ div(classes: 'prod-details', attributes: {
     return footer(classes: 'site-footer', [
       div(classes: 'container',
           attributes: {'style': 'text-align:center;padding:20px;'}, [
-        text('© 2026 108 MEDZ. All rights reserved.')
+        text('Â© 2026 108 MEDZ. All rights reserved.')
       ])
     ]);
   }
+
+  Future<List<Map<String, dynamic>>> _fetchHomeCategories() async {
+    const projectId = 'medz-9eda1';
+    const apiKey = 'AIzaSyDs7aCWHGL6V6_4B3_PA3NPpMLjhxJehKs';
+    const collection = 'Homecategories';
+
+    final uri = Uri.parse(
+      'https://firestore.googleapis.com/v1/projects/$projectId/databases/(default)/documents/$collection?key=$apiKey',
+    );
+
+    try {
+      final res = await http.get(uri).timeout(const Duration(seconds: 10));
+      if (res.statusCode != 200) {
+        print('Homecategories fetch failed: ${res.statusCode} ${res.body}');
+        return [];
+      }
+
+      final data = json.decode(res.body) as Map<String, dynamic>;
+      final docs = (data['documents'] as List?) ?? [];
+
+      int? parseInt(dynamic field) {
+        if (field is Map && field['integerValue'] != null) {
+        }
+        if (field is Map && field['stringValue'] != null) {
+          return int.tryParse(field['stringValue'].toString());
+        }
+        return null;
+      }
+
+      String? parseString(dynamic field) {
+        if (field is Map && field['stringValue'] != null) {
+          return field['stringValue'].toString();
+        }
+        return null;
+      }
+
+      return docs.map<Map<String, dynamic>>((doc) {
+        final fields = doc['fields'] as Map<String, dynamic>? ?? {};
+        final categoryId = parseInt(fields['categoryId']);
+        final order = parseInt(fields['order']) ?? 0;
+
+        return {
+          'id': (doc['name'] as String?)?.split('/').last ?? '',
+          'categoryId': categoryId ?? -1,
+          'categoryTitle1': parseString(fields['categoryTitle1']) ?? 'Category',
+          'categoryTitle2': parseString(fields['categoryTitle2']) ?? '',
+          'categoryIcon': parseString(fields['categoryIcon']) ?? '',
+          'backgroundImage': parseString(fields['backgroundImage']) ?? '',
+          'order': order,
+        };
+      }).where((c) => c['categoryId'] != -1).toList();
+    } catch (e) {
+      print('Homecategories fetch error: $e');
+      return [];
+    }
+  }
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
