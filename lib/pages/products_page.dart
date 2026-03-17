@@ -1,6 +1,8 @@
 ﻿import 'package:jaspr/dom.dart';
 import 'package:jaspr/jaspr.dart';
 import 'package:jaspr_router/jaspr_router.dart';
+import 'package:medzsite/components/footer.dart';
+import 'package:medzsite/components/header.dart';
 import 'package:medzsite/model/cart_item.dart';
 import 'package:medzsite/model/products.dart';
 import 'package:medzsite/store/cart_store.dart';
@@ -28,7 +30,7 @@ class _ProductsPageState extends State<ProductsPage> {
         .toList();
 
     return div(classes: 'products-page', [
-      _buildAppBar(),
+      HomeHeader(cartCount: CartStore.items.length, onSearch: (_) {}, onCartTap: () {}, onProfileTap: () => context.push('/profile')),
       main_(classes: 'container', [
         if (_isLoading)
           div(classes: 'loading-state', [text('Loading products...')])
@@ -48,7 +50,8 @@ class _ProductsPageState extends State<ProductsPage> {
               ],
             )
           ])
-      ]),
+      ] ),
+      HomeFooter(),
     ]);
   }
 
@@ -85,21 +88,21 @@ class _ProductsPageState extends State<ProductsPage> {
     });
   }
 
-  Component _buildAppBar() {
-    return header(classes: 'app-header', [
-      div(classes: 'container header-inner', [
-        Link(
-          to: '/',
-          child: span(classes: 'material-symbols-outlined', [text('arrow_back')]),
-        ),
-        h2([text('All Products')]),
-        div(classes: 'nav-actions', [
-          span(classes: 'material-symbols-outlined', [text('shopping_cart')]),
-          text(' ${CartStore.items.length}')
-        ]),
-      ])
-    ]);
-  }
+  // Component HomeHeader(cartCount: CartStore.items.length, onSearch: (_) {}, onCartTap: () {}, onProfileTap: () => context.push('/profile')) {
+  //   return header(classes: 'app-header', [
+  //     div(classes: 'container header-inner', [
+  //       Link(
+  //         to: '/',
+  //         child: span(classes: 'material-symbols-outlined', [text('arrow_back')]),
+  //       ),
+  //       h2([text('All Products')]),
+  //       div(classes: 'nav-actions', [
+  //         span(classes: 'material-symbols-outlined', [text('shopping_cart')]),
+  //         text(' ${CartStore.items.length}')
+  //       ]),
+  //     ])
+  //   ]);
+  // }
 
   Component _productCard(Product product) {
     double price = double.tryParse(product.price) ?? 0;
@@ -223,3 +226,6 @@ class _ProductsPageState extends State<ProductsPage> {
     ]);
   }
 }
+
+
+

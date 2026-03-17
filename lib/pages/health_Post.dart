@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:jaspr/dom.dart';
 import 'package:jaspr/jaspr.dart';
 import 'package:medzsite/component.dart';
+import 'package:medzsite/components/post_card.dart';
 import 'package:http/http.dart' as http;
 
 class HorizontalPosts extends StatefulComponent {
@@ -61,7 +62,7 @@ class _HorizontalPostsState extends State<HorizontalPosts> {
                 if (_isLoading) text("Loading health posts...")
                 else if (_posts.isEmpty) text("No health posts available")
                 else ...[
-                  for (var post in _posts) _PostCard(post: post),
+                  for (var post in _posts) PostCard(post: post),
                 ]
               ],
             ),
@@ -127,64 +128,3 @@ class _HorizontalPostsState extends State<HorizontalPosts> {
   }
 }
 
-class _PostCard extends StatelessComponent {
-  final dynamic post;
-  _PostCard({required this.post});
-
-  @override
-  Component build(BuildContext context) { // Changed return type and removed sync*
-    return a( // Removed yield
-      href: '/webview?url=${Uri.encodeComponent(post['posturl'])}',
-      attributes: {
-        'style': '''
-          flex: 0 0 auto;
-          width: 320px;
-          aspect-ratio: 16 / 9;
-          position: relative;
-          border-radius: 16px;
-          overflow: hidden;
-          text-decoration: none;
-          box-shadow: 0 6px 10px rgba(0,0,0,0.15);
-        '''
-      },
-      [
-        /// Image
-        img(
-          src: post['image'],
-          attributes: {'style': 'width: 100%; height: 100%; object-fit: cover;'}
-        ),
-
-        /// Gradient Overlay
-        div(attributes: {
-          'style': '''
-            position: absolute; inset: 0;
-            background: linear-gradient(to top, rgba(0,0,0,0.54), rgba(0,0,0,0.26), transparent);
-          '''
-        }, []),
-
-        /// Content Overlay
-        div(attributes: {
-          'style': 'position: absolute; bottom: 16px; left: 16px; right: 16px;'
-        }, [
-          /// Tag
-          span(attributes: {
-            'style': '''
-              background: #2B4C7E; color: white; padding: 4px 12px;
-              border-radius: 20px; font-size: 12px; display: inline-block;
-              margin-bottom: 8px;
-            '''
-          }, [text(post['tag'])]),
-
-          /// Title
-          h3(attributes: {
-            'style': '''
-              color: white; font-size: 18px; font-weight: bold; margin: 0;
-              display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
-              overflow: hidden;
-            '''
-          }, [text(post['title'])]),
-        ]),
-      ],
-    );
-  }
-}

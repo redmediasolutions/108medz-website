@@ -1,5 +1,7 @@
-import 'package:jaspr/dom.dart';
+﻿import 'package:jaspr/dom.dart';
 import 'package:jaspr/jaspr.dart';
+import 'package:medzsite/components/footer.dart';
+import 'package:medzsite/components/header.dart';
 
 class AccountDeletionPage extends StatelessComponent {
   const AccountDeletionPage({super.key});
@@ -112,10 +114,7 @@ a {
 }
 """)
       ]),
-      header([
-        img(src: '/images/108medz%20logo.png', alt: '108-Medz Logo', classes: 'hero-illustration'),
-        div(classes: 'brand-name', [text('108-MEDZ')]),
-      ], classes: 'top-header'),
+      HomeHeader(cartCount: 0, onSearch: (_) {}, onCartTap: () {}, onProfileTap: () {}),
       main_([
         div([
           h1([text('Delete my account')]),
@@ -132,12 +131,11 @@ a {
           ]),
         ], classes: 'main-content'),
       ], classes: 'content-container'),
-      footer([
-        div([
-          img(src: '/images/108medz%20logo.png', alt: '108-Medz Logo', classes: 'footer-logo'),
-          h3([text('108-MEDZ')]),
-        ], classes: 'logo-section'),
-      ], classes: 'bottom-footer'),
+      HomeFooter(),
     ]);
   }
 }
+
+
+
+
