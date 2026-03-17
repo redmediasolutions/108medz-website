@@ -9,6 +9,7 @@ import 'package:medzsite/pages/profile.dart';
 import 'package:medzsite/pages/product_page.dart';
 import 'package:medzsite/pages/products_page.dart';
 import 'package:medzsite/pages/reels.dart';
+import 'package:medzsite/pages/webview_page.dart';
 import 'pages/home_page.dart';
 class App extends StatelessComponent {
   @override
@@ -29,6 +30,7 @@ class App extends StatelessComponent {
         ),
         Route(path: '/reels', builder: (context, state) => ReelsSection()),
         Route(path: '/health-posts', builder: (context, state) => HorizontalPosts()),
+        Route(path: '/webview', builder: (context, state) => const WebViewPage()),
         Route(path: '/profile', builder: (context, state) => ProfilePage(
           isAnonymous: true,
           name: 'Guest User',
