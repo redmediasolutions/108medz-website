@@ -129,10 +129,14 @@ class _ProfilePageState extends State<ProfilePage> {
 
 
   /// MENU ITEM WIDGET
-  Component _menuItem(String title, VoidCallback onTap){
+  Component _menuItem(
+    String title,
+    VoidCallback onTap, {
+    bool requiresLogin = true,
+  }){
     return button(
       classes: 'profile-menu-item',
-      events: {'click': (_) => _handleMenuTap(onTap)},
+      events: {'click': (_) => _handleMenuTap(onTap, requiresLogin)},
       [
         span([text(title)]),
         span(classes: 'profile-chevron', [text('>')]),
@@ -140,8 +144,8 @@ class _ProfilePageState extends State<ProfilePage> {
     );
   }
 
-  void _handleMenuTap(VoidCallback onTap) {
-    if (component.isAnonymous) {
+  void _handleMenuTap(VoidCallback onTap, bool requiresLogin) {
+    if (requiresLogin && component.isAnonymous) {
       _promptLogin();
       return;
     }

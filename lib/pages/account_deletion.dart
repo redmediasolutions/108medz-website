@@ -113,7 +113,7 @@ a {
 """)
       ]),
       header([
-        img(src: 'medzlogo.png', alt: '108-Medz Logo', classes: 'hero-illustration'),
+        img(src: '/images/108medz%20logo.png', alt: '108-Medz Logo', classes: 'hero-illustration'),
         div(classes: 'brand-name', [text('108-MEDZ')]),
       ], classes: 'top-header'),
       main_([
@@ -134,7 +134,7 @@ a {
       ], classes: 'content-container'),
       footer([
         div([
-          img(src: 'medzlogo.png', alt: '108-Medz Logo', classes: 'footer-logo'),
+          img(src: '/images/108medz%20logo.png', alt: '108-Medz Logo', classes: 'footer-logo'),
           h3([text('108-MEDZ')]),
         ], classes: 'logo-section'),
       ], classes: 'bottom-footer'),

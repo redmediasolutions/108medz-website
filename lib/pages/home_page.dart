@@ -21,6 +21,7 @@ class _HomePageState extends State<HomePage> {
   bool showCallPopup = false;
   List<Product> _products = [];
   List<dynamic> _categories = [];
+  String _searchQuery = '';
 
   bool _isLoading = true;
   bool _showCart = false;
@@ -188,7 +189,7 @@ if (showCallPopup) _callPopup();
           ]),
           div(classes: 'brand-text', [
             h1([text('108 MEDZ')]),
-            span([text('YOUR HEALTH PARTNER')])
+          
           ])
         ]),
 
@@ -196,6 +197,11 @@ if (showCallPopup) _callPopup();
           input(classes: 'search-input', attributes: {
             'placeholder': 'Search medicines...',
             'type': 'text'
+          }, events: {
+            'input': (e) {
+              final value = (e.target as dynamic).value?.toString() ?? '';
+              setState(() => _searchQuery = value);
+            }
           }),
           span(classes: 'material-symbols-outlined search-icon', [text('search')])
         ]),
@@ -235,6 +241,7 @@ if (showCallPopup) _callPopup();
   Component _buildHero() {
     return section(classes: 'hero-section', [
       div(classes: 'hero-content', [
+        br(),
         h1([text('LESS COST, MORE CARE')]),
         p([
           text('Get affordable generic medicines delivered to your doorstep.')
@@ -443,7 +450,16 @@ if (showCallPopup) _callPopup();
   //====================PRODUCT LIST====================
 
   Component _buildPopularMedicines() {
-    final visibleProducts = _products
+    final query = _searchQuery.trim().toLowerCase();
+    final filtered = query.isEmpty
+        ? _products
+        : _products.where((p) {
+            final name = p.name.toLowerCase();
+            final category = p.category.toLowerCase();
+            return name.contains(query) || category.contains(query);
+          }).toList();
+
+    final visibleProducts = filtered
         .where((p) => p.price.trim().isNotEmpty && p.price.trim() != '0')
         .take(15)
         .toList();
@@ -459,9 +475,11 @@ if (showCallPopup) _callPopup();
       if (_isLoading)
         div(classes: 'loading-state', [text('Updating list...')])
       else if (visibleProducts.isEmpty)
-        div(classes: 'empty-state', [text('No products found.')])
+        div(classes: 'empty-state', [
+          text(query.isEmpty ? 'No products found.' : 'No matching products.')
+        ])
       else
-        div(classes: 'grid-cols-4', [
+        div(classes: 'product-grid', [
           for (var product in visibleProducts) _productCard(product),
         ])
     ]);
