@@ -29,6 +29,8 @@ class _HomePageState extends State<HomePage> {
 
   bool _isLoading = true;
   bool _showCart = false;
+  bool _loadingHomeProducts = false;
+  int? _homeCategoryId;
 
   @override
   Component build(BuildContext context) {
@@ -55,6 +57,11 @@ if (showCallPopup) _callPopup();
         _products = data[1];
         _homeCategories = (data[2] as List).cast<Map<String, dynamic>>();
         _isLoading = false;
+        _homeCategoryId ??= _findHomeCategoryId();
+        if (_homeCategoryId != null && !_loadingHomeProducts) {
+          _loadingHomeProducts = true;
+          _loadHomeCategoryProducts(_homeCategoryId!);
+        }
       },
       builder: (context) {
         return div(classes: 'main-wrapper', [
@@ -456,6 +463,28 @@ if (showCallPopup) _callPopup();
     setState(() {
       _products = results;
       _isLoading = false;
+    });
+  }
+
+  int? _findHomeCategoryId() {
+    for (final cat in _categories) {
+      final name = cat['name']?.toString().trim().toLowerCase();
+      final slug = cat['slug']?.toString().trim().toLowerCase();
+      if (name == 'home page' || slug == 'home-page') {
+        final id = cat['id'];
+        if (id is int) return id;
+      }
+    }
+    return null;
+  }
+
+  Future<void> _loadHomeCategoryProducts(int categoryId) async {
+    final results = await _apiService.fetchProductsByCategory(categoryId);
+    if (!mounted) return;
+    setState(() {
+      _products = results;
+      _isLoading = false;
+      _loadingHomeProducts = false;
     });
   }
 
