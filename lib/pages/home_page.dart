@@ -668,6 +668,7 @@ div(classes: 'prod-details', attributes: {
 
       int? parseInt(dynamic field) {
         if (field is Map && field['integerValue'] != null) {
+          return int.tryParse(field['integerValue'].toString());
         }
         if (field is Map && field['stringValue'] != null) {
           return int.tryParse(field['stringValue'].toString());
