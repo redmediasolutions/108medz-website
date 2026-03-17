@@ -73,6 +73,10 @@ class _ProfilePageState extends State<ProfilePage> {
           print("Navigate to Rewards");
         }),
 
+        _menuItem("Delete your account", () {
+          context.push('/delete-account');
+        }),
+
         /// CTA / LOGOUT
         if (component.isAnonymous)
           div(classes: 'profile-guest', [

@@ -201,7 +201,7 @@ if (showCallPopup) _callPopup();
         ]),
 
         nav(classes: 'nav-actions', [
-          _navBtn('assignment', 'Orders', route: ''),
+          _navBtn('assignment', 'Orders'),
           button(
             classes: 'nav-btn',
             events: {'click': (_) => setState(() => _showCart = true)},
@@ -210,14 +210,21 @@ if (showCallPopup) _callPopup();
               text('Cart (${CartStore.items.length})')
             ],
           ),
-          _navBtn('account_circle', 'Profile', route: '/profile'),
+          _navBtn(
+            'account_circle',
+            'Profile',
+            onTap: () => context.push('/profile'),
+          ),
         ])
       ])
     ]);
   }
 
-  Component _navBtn(String icon, String label, {required String route}) {
-    return button(classes: 'nav-btn', [
+  Component _navBtn(String icon, String label, {VoidCallback? onTap}) {
+    return button(
+      classes: 'nav-btn',
+      events: onTap == null ? null : {'click': (_) => onTap()},
+      [
       span(classes: 'material-symbols-outlined', [text(icon)]),
       text(label)
     ]);
