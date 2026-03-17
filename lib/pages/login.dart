@@ -1,4 +1,4 @@
-﻿import 'dart:convert';
+import 'dart:convert';
 import 'package:jaspr/jaspr.dart';
 import 'package:jaspr/dom.dart';
 import 'package:http/http.dart' as http;
@@ -212,5 +212,3 @@ class _MobileLoginPageState extends State<MobileLoginPage> {
     ]);
   }
 }
-
-
