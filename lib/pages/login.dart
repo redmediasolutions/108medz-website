@@ -2,7 +2,8 @@ import 'dart:convert';
 import 'package:jaspr/jaspr.dart';
 import 'package:jaspr/dom.dart';
 import 'package:http/http.dart' as http;
-import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_dart/firebase_dart.dart';
+import 'package:medzsite/util/firebase_options.dart';
 import 'package:jaspr_router/jaspr_router.dart';
 
 class MobileLoginPage extends StatefulComponent {
@@ -21,6 +22,23 @@ class _MobileLoginPageState extends State<MobileLoginPage> {
   bool showOtpBox = false;
 
   String reqId = '';
+  bool _firebaseReady = false;
+
+  Future<void> _ensureFirebase() async {
+    if (_firebaseReady || Firebase.apps.isNotEmpty) {
+      _firebaseReady = true;
+      return;
+    }
+    try {
+      await Firebase.initializeApp(
+        options: DefaultFirebaseOptions.currentPlatform,
+      );
+      _firebaseReady = true;
+    } catch (e) {
+      // Keep UI responsive even if init fails.
+      print('Firebase init error (login): $e');
+    }
+  }
 
   //================ SEND OTP ==================
 
@@ -87,6 +105,7 @@ class _MobileLoginPageState extends State<MobileLoginPage> {
 
       String token = data['token'];
 
+      await _ensureFirebase();
       await FirebaseAuth.instance.signInWithCustomToken(token);
 
       // redirect home
@@ -100,6 +119,7 @@ class _MobileLoginPageState extends State<MobileLoginPage> {
   Future<void> guestLogin() async {
 
     try {
+      await _ensureFirebase();
       await FirebaseAuth.instance.signInAnonymously();
     } catch (_) {
       // Even if auth fails, still route the user as requested.
