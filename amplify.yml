@@ -3,29 +3,30 @@ frontend:
   phases:
     preBuild:
       commands:
-        - echo "Downloading Dart SDK..."
+        - echo "Downloading Dart..."
         - curl -L -sS -O https://storage.googleapis.com/dart-archive/channels/stable/release/latest/sdk/dartsdk-linux-x64-release.zip
-        
         - echo "Extracting..."
         - python3 -m zipfile -e dartsdk-linux-x64-release.zip .
         
-        # Move dart-sdk to a stable location and set PATH
-        - export PATH="$PATH:$(pwd)/dart-sdk/bin"
-        - dart --version
+        # Define absolute paths to avoid environment issues
+        - DART_BIN="$(pwd)/dart-sdk/bin/dart"
+        - $DART_BIN --version
         
-        - echo "Installing Jaspr CLI..."
-        - dart pub global activate jaspr_cli
-        # CRITICAL: Add both Dart and Pub Cache to PATH
-        - export PATH="$PATH":"$HOME/.pub-cache/bin"
+        - echo "Activating Jaspr CLI..."
+        - $DART_BIN pub global activate jaspr_cli
         
-        - echo "Getting dependencies for 108 Medz..."
-        - dart pub get
+        # Point specifically to the activated jaspr binary
+        - JASPR_BIN="$HOME/.pub-cache/bin/jaspr"
+        
+        - echo "Fetching dependencies for 108 Medz..."
+        - $DART_BIN pub get
     build:
       commands:
-        - echo "Starting Jaspr Production Build..."
-        # Using 'export' again here to ensure the build phase sees the path
-        - export PATH="$PATH:$(pwd)/dart-sdk/bin:$HOME/.pub-cache/bin"
-        - jaspr build --release
+        - echo "Starting Jaspr Build..."
+        # Re-defining paths for the build phase
+        - DART_BIN="$(pwd)/dart-sdk/bin/dart"
+        - JASPR_BIN="$HOME/.pub-cache/bin/jaspr"
+        - $JASPR_BIN build --release
   artifacts:
     baseDirectory: build/jaspr
     files:
