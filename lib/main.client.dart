@@ -4,6 +4,7 @@ import 'package:firebase_dart/implementation/pure_dart.dart' as firebase_dart;
 import 'app.dart';
 import 'main.client.options.dart';
 import 'package:medzsite/util/firebase_options.dart'; 
+import 'package:medzsite/store/cart_store.dart';
 
 void main() async {
   // Register Firebase implementation for web/JS-free usage.
@@ -18,6 +19,12 @@ void main() async {
     print('Firebase init error: $e');
   }
 
+  try {
+    await FirebaseAuth.instance.authStateChanges().first
+        .timeout(const Duration(seconds: 2));
+  } catch (_) {}
+
+  await CartStore.ensureLoaded();
   Jaspr.initializeApp(options: defaultClientOptions);
   runApp(App());
 }

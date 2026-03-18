@@ -2,6 +2,7 @@ import 'package:jaspr/dom.dart';
 import 'package:jaspr/jaspr.dart';
 import 'package:jaspr_router/jaspr_router.dart';
 import '../model/cart_item.dart';
+import '../store/cart_store.dart';
 
 class CartPage extends StatefulComponent {
   final List<CartItem> cart;
@@ -198,7 +199,7 @@ class _CartPageState extends State<CartPage> {
                 events: {
                   'click': (_) {
                     setState(() {
-                      component.cart.remove(item);
+                      CartStore.removeItem(item);
                     });
                   }
                 },
@@ -213,7 +214,10 @@ class _CartPageState extends State<CartPage> {
                 events: {
                   'click': (_) {
                     setState(() {
-                      if (item.quantity > 1) item.quantity--;
+                      if (item.quantity > 1) {
+                        item.quantity--;
+                        CartStore.persist();
+                      }
                     });
                   }
                 },
@@ -231,6 +235,7 @@ class _CartPageState extends State<CartPage> {
                   'click': (_) {
                     setState(() {
                       item.quantity++;
+                      CartStore.persist();
                     });
                   }
                 },

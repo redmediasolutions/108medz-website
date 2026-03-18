@@ -1,6 +1,7 @@
 import 'package:jaspr/dom.dart';
 import 'package:jaspr/jaspr.dart';
 import 'package:jaspr_router/jaspr_router.dart';
+import 'package:firebase_dart/firebase_dart.dart';
 import 'package:medzsite/components/footer.dart';
 import 'package:medzsite/components/header.dart';
 import 'package:medzsite/model/cart_item.dart';
@@ -22,6 +23,7 @@ class _CategoryProductsPageState extends State<CategoryProductsPage> {
   List<Product> _products = [];
   String _categoryName = 'Category';
   bool _isLoading = true;
+  bool _showLoginPopup = false;
 
   @override
   void initState() {
@@ -87,6 +89,7 @@ class _CategoryProductsPageState extends State<CategoryProductsPage> {
           ]),
       ]),
       HomeFooter(),
+      if (_showLoginPopup) _loginPopup(context),
     ]);
   }
 
@@ -187,15 +190,7 @@ class _CategoryProductsPageState extends State<CategoryProductsPage> {
           },
           events: {
             'click': (_) {
-              setState(() {
-                CartStore.addItem(
-                  CartItem(
-                    name: product.name,
-                    price: product.price,
-                    image: product.imageUrl,
-                  ),
-                );
-              });
+              _handleAddToCart(context, product);
             }
           },
           [
@@ -205,6 +200,79 @@ class _CategoryProductsPageState extends State<CategoryProductsPage> {
             text(' Add')
           ],
         )
+      ])
+    ]);
+  }
+
+  void _handleAddToCart(BuildContext context, Product product) {
+    if (_isAnonymous()) {
+      setState(() => _showLoginPopup = true);
+      return;
+    }
+    setState(() {
+      CartStore.addItem(
+        CartItem(
+          name: product.name,
+          price: product.price,
+          image: product.imageUrl,
+        ),
+      );
+    });
+  }
+
+  bool _isAnonymous() {
+    try {
+      final user = FirebaseAuth.instance.currentUser;
+      return user == null || user.isAnonymous;
+    } catch (_) {
+      return true;
+    }
+  }
+
+  Component _loginPopup(BuildContext context) {
+    return div(attributes: {
+      'style': '''
+      position:fixed;
+      inset:0;
+      background:rgba(0,0,0,0.45);
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      z-index:1000;
+      '''
+    }, [
+      div(attributes: {
+        'style': '''
+        background:#ffffff;
+        padding:20px;
+        border-radius:14px;
+        width:min(360px, 90%);
+        box-shadow:0 10px 30px rgba(0,0,0,0.2);
+        text-align:center;
+        '''
+      }, [
+        h3([text('Login Required')]),
+        p([text('Please sign in to add items to your cart.')]),
+        div(attributes: {'style': 'display:flex;gap:10px;justify-content:center;margin-top:16px;'}, [
+          button(
+            attributes: {
+              'style': 'background:#2c4374;color:white;border:none;padding:10px 16px;border-radius:10px;cursor:pointer;'
+            },
+            events: {
+              'click': (_) => context.push('/login')
+            },
+            [text('Login')]
+          ),
+          button(
+            attributes: {
+              'style': 'background:#e5e7eb;color:#111827;border:none;padding:10px 16px;border-radius:10px;cursor:pointer;'
+            },
+            events: {
+              'click': (_) => setState(() => _showLoginPopup = false)
+            },
+            [text('Cancel')]
+          ),
+        ])
       ])
     ]);
   }

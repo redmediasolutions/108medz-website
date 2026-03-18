@@ -3,6 +3,7 @@ import 'package:jaspr/dom.dart';
 import 'package:jaspr/jaspr.dart';
 import 'package:jaspr_router/jaspr_router.dart';
 import 'package:http/http.dart' as http;
+import 'package:firebase_dart/firebase_dart.dart';
 import 'package:medzsite/component.dart';
 import 'package:medzsite/components/category_pill.dart';
 import 'package:medzsite/components/home_actions.dart';
@@ -35,6 +36,7 @@ class _HomePageState extends State<HomePage> {
   bool _showCart = false;
   bool _loadingHomeProducts = false;
   int? _homeCategoryId;
+  bool _showLoginPopup = false;
 
   @override
   Component build(BuildContext context) {
@@ -84,6 +86,7 @@ if (showCallPopup) _callPopup();
             ]),
             HomeFooter(),
           ]),
+          if (_showLoginPopup) _loginPopup(context),
         ]);
       },
     );
@@ -157,6 +160,10 @@ if (showCallPopup) _callPopup();
   //====================ADD TO CART====================
 
   void _addToCart(Product product) {
+    if (_isAnonymous()) {
+      setState(() => _showLoginPopup = true);
+      return;
+    }
     setState(() {
       CartStore.addItem(
         CartItem(
@@ -167,6 +174,63 @@ if (showCallPopup) _callPopup();
       );
     });
   }  
+
+  bool _isAnonymous() {
+    try {
+      final user = FirebaseAuth.instance.currentUser;
+      return user == null || user.isAnonymous;
+    } catch (_) {
+      return true;
+    }
+  }
+
+  Component _loginPopup(BuildContext context) {
+    return div(attributes: {
+      'style': '''
+      position:fixed;
+      inset:0;
+      background:rgba(0,0,0,0.45);
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      z-index:1000;
+      '''
+    }, [
+      div(attributes: {
+        'style': '''
+        background:#ffffff;
+        padding:20px;
+        border-radius:14px;
+        width:min(360px, 90%);
+        box-shadow:0 10px 30px rgba(0,0,0,0.2);
+        text-align:center;
+        '''
+      }, [
+        h3([text('Login Required')]),
+        p([text('Please sign in to add items to your cart.')]),
+        div(attributes: {'style': 'display:flex;gap:10px;justify-content:center;margin-top:16px;'}, [
+          button(
+            attributes: {
+              'style': 'background:#2c4374;color:white;border:none;padding:10px 16px;border-radius:10px;cursor:pointer;'
+            },
+            events: {
+              'click': (_) => context.push('/login')
+            },
+            [text('Login')]
+          ),
+          button(
+            attributes: {
+              'style': 'background:#e5e7eb;color:#111827;border:none;padding:10px 16px;border-radius:10px;cursor:pointer;'
+            },
+            events: {
+              'click': (_) => setState(() => _showLoginPopup = false)
+            },
+            [text('Cancel')]
+          ),
+        ])
+      ])
+    ]);
+  }
 
   Component HeroSection(BuildContext context) {
     return section(classes: 'hero-section', [
@@ -437,7 +501,6 @@ if (showCallPopup) _callPopup();
     }
   }
 }
-
 
 
 
