@@ -110,6 +110,16 @@ class _MobileLoginPageState extends State<MobileLoginPage> {
       String token = data['token'];
 
       await _ensureFirebase();
+      final cred = await FirebaseAuth.instance.signInWithCustomToken(token);
+
+      final user = cred.user ?? FirebaseAuth.instance.currentUser;
+      if (user != null) {
+        final needsProfile = await _needsProfileSetup(user);
+        if (needsProfile) {
+          context.push('/edit-profile');
+          return;
+        }
+      }
       await FirebaseAuth.instance.signInWithCustomToken(token);
       await CartStore.reloadFromRemote();
 
