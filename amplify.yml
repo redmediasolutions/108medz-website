@@ -3,30 +3,21 @@ frontend:
   phases:
     preBuild:
       commands:
-        - echo "Downloading Dart..."
-        - curl -L -sS -O https://storage.googleapis.com/dart-archive/channels/stable/release/latest/sdk/dartsdk-linux-x64-release.zip
-        - echo "Extracting..."
-        - python3 -m zipfile -e dartsdk-linux-x64-release.zip .
-        
-        # Define absolute paths to avoid environment issues
-        - DART_BIN="$(pwd)/dart-sdk/bin/dart"
-        - $DART_BIN --version
-        
-        - echo "Activating Jaspr CLI..."
-        - $DART_BIN pub global activate jaspr_cli
-        
-        # Point specifically to the activated jaspr binary
-        - JASPR_BIN="$HOME/.pub-cache/bin/jaspr"
-        
-        - echo "Fetching dependencies for 108 Medz..."
-        - $DART_BIN pub get
+        - echo "Installing Dart and Jaspr..."
+        - |
+          curl -L -sS -O https://storage.googleapis.com/dart-archive/channels/stable/release/latest/sdk/dartsdk-linux-x64-release.zip
+          python3 -m zipfile -e dartsdk-linux-x64-release.zip .
+          export PATH="$PATH:$(pwd)/dart-sdk/bin"
+          dart --version
+          dart pub global activate jaspr_cli
+          export PATH="$PATH:$HOME/.pub-cache/bin"
+          dart pub get
     build:
       commands:
-        - echo "Starting Jaspr Build..."
-        # Re-defining paths for the build phase
-        - DART_BIN="$(pwd)/dart-sdk/bin/dart"
-        - JASPR_BIN="$HOME/.pub-cache/bin/jaspr"
-        - $JASPR_BIN build --release
+        - echo "Building 108 Medz..."
+        - |
+          export PATH="$PATH:$(pwd)/dart-sdk/bin:$HOME/.pub-cache/bin"
+          jaspr build --release
   artifacts:
     baseDirectory: build/jaspr
     files:
