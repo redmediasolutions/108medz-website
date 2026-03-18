@@ -1,0 +1,29 @@
+version: 1
+frontend:
+  phases:
+    preBuild:
+      commands:
+        - echo "Installing Dart and Jaspr..."
+        - |
+          curl -L -sS -O https://storage.googleapis.com/dart-archive/channels/stable/release/latest/sdk/dartsdk-linux-x64-release.zip
+          python3 -m zipfile -e dartsdk-linux-x64-release.zip .
+          export PATH="$PATH:$(pwd)/dart-sdk/bin"
+          dart --version
+          dart pub global activate jaspr_cli
+          export PATH="$PATH:$HOME/.pub-cache/bin"
+          dart pub get
+    build:
+      commands:
+        - echo "Building 108 Medz..."
+        - |
+          export PATH="$PATH:$(pwd)/dart-sdk/bin:$HOME/.pub-cache/bin"
+          jaspr build --release
+  artifacts:
+    baseDirectory: build/jaspr
+    files:
+      - '**/*'
+  cache:
+    paths:
+      - .dart_tool/**/*
+      - dart-sdk/**/*
+      - $HOME/.pub-cache/**/*
