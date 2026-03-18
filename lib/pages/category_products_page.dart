@@ -38,7 +38,7 @@ class _CategoryProductsPageState extends State<CategoryProductsPage> {
     ]);
 
     final products = (results[0] as List<Product>);
-    final categories = (results[1] as List<dynamic>);
+    final categories = results[1];
 
     String name = 'Category';
     for (final c in categories) {

@@ -1,4 +1,4 @@
-import 'package:firebase_dart/firebase_dart.dart';
+import 'package:firebase_core/firebase_core.dart';
 
 class DefaultFirebaseOptions {
   static FirebaseOptions get currentPlatform {

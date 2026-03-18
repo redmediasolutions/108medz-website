@@ -6,12 +6,12 @@ class HealthInfoSection extends StatelessComponent {
   Component build(BuildContext context) {
     return div(classes: 'action-grid', [
       a(
-          href: '/health-posts',
+          href: '#health-posts',
           classes: 'category-card',
           attributes: {'style': 'text-decoration:none;display:block;'},
           [h3([text('Health Posts')])]),
       a(
-          href: '/reels',
+          href: '#health-reels',
           classes: 'category-card',
           attributes: {'style': 'text-decoration:none;display:block;'},
           [h3([text('Expert Reels')])]),

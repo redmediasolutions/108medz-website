@@ -1,22 +1,19 @@
-﻿// ignore_for_file: deprecated_member_use
-
-import 'dart:convert';
-
+﻿import 'dart:convert';
 import 'package:jaspr/dom.dart';
 import 'package:jaspr/jaspr.dart';
 import 'package:jaspr_router/jaspr_router.dart';
 import 'package:http/http.dart' as http;
 import 'package:medzsite/component.dart';
 import 'package:medzsite/components/category_pill.dart';
-import 'package:medzsite/components/health_info_section.dart';
 import 'package:medzsite/components/home_actions.dart';
 import 'package:medzsite/components/footer.dart';
 import 'package:medzsite/components/header.dart';
-import 'package:medzsite/components/hero_section.dart';
 import 'package:medzsite/components/product_card.dart';
 import 'package:medzsite/model/cart_item.dart';
 import 'package:medzsite/model/products.dart';
 import 'package:medzsite/pages/cart_page.dart';
+import 'package:medzsite/pages/health_Post.dart';
+import 'package:medzsite/pages/reels.dart';
 import 'package:medzsite/store/cart_store.dart';
 import 'api.dart';
 
@@ -74,11 +71,17 @@ if (showCallPopup) _callPopup();
         return div(classes: 'main-wrapper', [
           HomeHeader(cartCount: CartStore.items.length, onSearch: (value) => setState(() => _searchQuery = value), onCartTap: () => setState(() => _showCart = true), onProfileTap: () => context.push('/profile')),
           main_(classes: 'container', [
-            HeroSection(),
+            HeroSection(context),
             HomeActions(onPrescriptionTap: () => setState(() { showPrescriptionPopup = true; }), onCallTap: () => setState(() { showCallPopup = true; })),
             _buildDynamicCategories(context),
             _buildPopularMedicines(),
-            HealthInfoSection(),
+           // HealthInfoSection(),
+            div(attributes: {'id': 'health-posts'}, [
+              HorizontalPosts(),
+            ]),
+            div(attributes: {'id': 'health-reels'}, [
+              ReelsSection(),
+            ]),
             HomeFooter(),
           ]),
         ]);
@@ -163,44 +166,9 @@ if (showCallPopup) _callPopup();
         ),
       );
     });
-  }
+  }  
 
-  //====================CART PAGE====================
-
-  Component _buildCartPage() {
-    return div(classes: 'container', [
-      h2([text('Your Cart')]),
-
-      button(
-        classes: 'btn-action',
-        events: {'click': (_) => setState(() => _showCart = false)},
-        [text('← Back')],
-      ),
-
-      if (CartStore.items.isEmpty)
-        p([text('Cart is empty')])
-      else
-        table([
-          thead([
-            tr([
-              th([text('Product')]),
-              th([text('Price')]),
-            ])
-          ]),
-          tbody([
-            for (var item in CartStore.items)
-              tr([
-                td([text(item.name)]),
-                td([text('₹${item.price}')]),
-              ])
-          ])
-        ])
-    ]);
-  }
-
-  
-
-  Component HeroSection() {
+  Component HeroSection(BuildContext context) {
     return section(classes: 'hero-section', [
       div(classes: 'hero-content', [
         br(),
@@ -208,7 +176,11 @@ if (showCallPopup) _callPopup();
         p([
           text('Get affordable generic medicines delivered to your doorstep.')
         ]),
-        button(classes: 'btn-cta', [text('Shop Now')])
+        button(
+          classes: 'btn-cta',
+          events: {'click': (_) => context.push('/products')},
+          [text('Shop Now')],
+        )
       ]),
       div(classes: 'hero-image', [
         span(
@@ -465,9 +437,6 @@ if (showCallPopup) _callPopup();
     }
   }
 }
-
-
-
 
 
 

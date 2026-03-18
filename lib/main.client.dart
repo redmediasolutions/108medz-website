@@ -1,11 +1,13 @@
 import 'package:jaspr/client.dart';
-import 'package:firebase_dart/firebase_dart.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'app.dart';
 import 'main.client.options.dart';
 import 'package:medzsite/util/firebase_options.dart'; 
 
 void main() async {
-  // Initialize Firebase using the pure-Dart SDK to avoid web plugin issues.
+  Jaspr.initializeApp(options: defaultClientOptions);
+
+  // Initialize Firebase for web plugins before any auth/firestore usage.
   try {
     await Firebase.initializeApp(
       options: DefaultFirebaseOptions.currentPlatform,
@@ -15,6 +17,5 @@ void main() async {
     print('Firebase init error: $e');
   }
 
-  Jaspr.initializeApp(options: defaultClientOptions);
   runApp(App());
 }

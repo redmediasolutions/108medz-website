@@ -1,5 +1,6 @@
 import 'package:jaspr/dom.dart';
 import 'package:jaspr/jaspr.dart';
+import 'package:jaspr_router/jaspr_router.dart';
 import '../model/cart_item.dart';
 
 class CartPage extends StatefulComponent {
@@ -116,7 +117,10 @@ class _CartPageState extends State<CartPage> {
             },
             [
               span(classes: 'material-symbols-outlined', [text('add')]),
-              text('Add Items')
+              Link(
+          to: '/products',
+          child: text('Add items')
+        )
             ]
           )
         ])
