@@ -112,8 +112,9 @@ class _EditProfilePageState extends State<EditProfilePage> {
     final user = _currentUserSafe();
     if (user == null) {
       return div(classes: 'profile-page', [
-        div(classes: 'profile-card', [
-          h2([text('Please sign in')]),
+        div(classes: 'profile-card profile-edit-card', [
+          h2(classes: 'profile-edit-title', [text('Please sign in')]),
+          p(classes: 'profile-edit-sub', [text('Log in to update your profile details.')]),
           button(
             classes: 'profile-primary-btn',
             events: {'click': (_) => context.push('/login')},
@@ -134,36 +135,67 @@ class _EditProfilePageState extends State<EditProfilePage> {
       },
       builder: (context) {
         return div(classes: 'profile-page', [
-          div(classes: 'profile-card', [
-            h2([text('Update your Profile')]),
+          div(classes: 'profile-card profile-edit-card', [
+            div(classes: 'profile-edit-hero', [
+              div(classes: 'profile-edit-badge', [text('Step 1 of 1')]),
+              h2(classes: 'profile-edit-title', [text('Complete your profile')]),
+              p(classes: 'profile-edit-sub', [
+                text('Add your name and email so we can personalize your experience.')
+              ]),
+            ]),
             div(classes: 'profile-input-group', [
-              input(
-                classes: 'profile-input',
-                attributes: {'placeholder': 'Enter your Full Name', 'type': 'text'},
-                events: {
-                  'input': (e) => _name = (e.target as dynamic).value?.toString() ?? ''
-                },
-              ),
-              input(
-                classes: 'profile-input',
-                attributes: {'placeholder': 'Email', 'type': 'email'},
-                events: {
-                  'input': (e) => _email = (e.target as dynamic).value?.toString() ?? ''
-                },
-              ),
+              div(classes: 'profile-field', [
+                label(classes: 'profile-label', [text('Full name')]),
+                div(classes: 'profile-input-wrap', [
+                  span(classes: 'profile-input-icon', [text('👤')]),
+                  input(
+                    classes: 'profile-input',
+                    attributes: {
+                      'placeholder': 'Enter your full name',
+                      'type': 'text',
+                      'value': _name,
+                    },
+                    events: {
+                      'input': (e) =>
+                          _name = (e.target as dynamic).value?.toString() ?? ''
+                    },
+                  ),
+                ]),
+              ]),
+              div(classes: 'profile-field', [
+                label(classes: 'profile-label', [text('Email')]),
+                div(classes: 'profile-input-wrap', [
+                  span(classes: 'profile-input-icon', [text('✉')]),
+                  input(
+                    classes: 'profile-input',
+                    attributes: {
+                      'placeholder': 'name@example.com',
+                      'type': 'email',
+                      'value': _email,
+                    },
+                    events: {
+                      'input': (e) =>
+                          _email = (e.target as dynamic).value?.toString() ?? ''
+                    },
+                  ),
+                ]),
+              ]),
             ]),
             if (_message != null)
               div(classes: 'profile-note', [text(_message!)]),
             button(
-              classes: 'profile-primary-btn',
+              classes: 'profile-primary-btn profile-edit-btn',
               events: _saving
                   ? {}
                   : {
                       'click': (_) =>
                           _saveProfile(user.uid, user.phoneNumber ?? ''),
                     },
-              [text(_saving ? 'Saving...' : 'Continue to App')],
+              [text(_saving ? 'Saving...' : 'Save & Continue')],
             ),
+            div(classes: 'profile-edit-foot', [
+              span([text('You can update this anytime from Profile')]),
+            ]),
           ]),
         ]);
       },
