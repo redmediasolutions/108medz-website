@@ -58,8 +58,12 @@ class HomeHeader extends StatelessComponent {
             classes: 'nav-btn',
             events: {'click': (_) => onCartTap()},
             [
-              span(classes: 'material-symbols-outlined', [text('shopping_cart')]),
-              text('Cart ($cartCount)')
+              span(classes: 'nav-icon', [
+                span(classes: 'material-symbols-outlined', [text('shopping_cart')]),
+                if (cartCount > 0)
+                  span(classes: 'nav-badge', [text('$cartCount')]),
+              ]),
+              span(classes: 'nav-label', [text('Cart')])
             ],
           ),
           _navBtn(
@@ -77,8 +81,10 @@ class HomeHeader extends StatelessComponent {
       classes: 'nav-btn',
       events: onTap == null ? null : {'click': (_) => onTap()},
       [
-        span(classes: 'material-symbols-outlined', [text(icon)]),
-        text(label)
+        span(classes: 'nav-icon', [
+          span(classes: 'material-symbols-outlined', [text(icon)])
+        ]),
+        span(classes: 'nav-label', [text(label)])
       ],
     );
   }
