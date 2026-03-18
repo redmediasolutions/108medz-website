@@ -5,6 +5,7 @@ import 'package:http/http.dart' as http;
 import 'package:firebase_dart/firebase_dart.dart';
 import 'package:jaspr_router/jaspr_router.dart';
 import 'package:medzsite/util/firebase_options.dart';
+import 'package:medzsite/store/cart_store.dart';
 
 
 
@@ -119,6 +120,8 @@ class _MobileLoginPageState extends State<MobileLoginPage> {
           return;
         }
       }
+      await FirebaseAuth.instance.signInWithCustomToken(token);
+      await CartStore.reloadFromRemote();
 
       // redirect home
       context.push('/');
@@ -133,6 +136,7 @@ class _MobileLoginPageState extends State<MobileLoginPage> {
     try {
       await _ensureFirebase();
       await FirebaseAuth.instance.signInAnonymously();
+      await CartStore.reloadFromRemote();
     } catch (_) {
       // Even if auth fails, still route the user as requested.
     }
