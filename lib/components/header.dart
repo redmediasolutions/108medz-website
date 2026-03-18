@@ -19,27 +19,25 @@ class HomeHeader extends StatelessComponent {
   Component build(BuildContext context) {
     return header(classes: 'app-header', [
       div(classes: 'container header-inner', [
-        button(
-          classes: 'brand brand-btn',
-          events: {'click': (_) => context.push('/')},
-          [
-            div(classes: 'cat-icon icon-sm', [
-              img(
-                src: '/images/108medz%20logo.png',
-                attributes: {
-                  'alt': '108 Medz',
-                  'style': 'width:28px;height:28px;object-fit:contain;',
-                  'loading': 'lazy',
-                  'referrerpolicy': 'no-referrer',
-                  'onerror': "this.src='assets/placeholder.png';"
-                },
-              )
-            ]),
-            div(classes: 'brand-text', [
-              h1([text('108 MEDZ')]),
-            ])
-          ],
-        ),
+        div(classes: 'profile-header', [
+          button(
+            classes: 'profile-brand-btn',
+            events: {'click': (_) => context.push('/')},
+            [
+              div(classes: 'profile-brand', [
+                img(
+                  src: '/images/108medz%20logo.png',
+                  alt: '108 Medz',
+                  classes: 'profile-logo',
+                ),
+                div([
+                  h1(classes: 'profile-title', [text('108 MEDZ')]),
+                  span(classes: 'profile-tagline', [text('YOUR HEALTH PARTNER')]),
+                ]),
+              ]),
+            ],
+          ),
+        ]),
 
         div(classes: 'search-bar', [
           input(classes: 'search-input', attributes: {
