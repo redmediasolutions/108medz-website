@@ -5,11 +5,6 @@
 // Generated with jaspr_builder
 
 import 'package:jaspr/client.dart';
-import 'package:flutter_web_plugins/flutter_web_plugins.dart';
-import 'package:cloud_firestore_web/cloud_firestore_web.dart'
-    as _cloud_firestore_web;
-import 'package:firebase_auth_web/firebase_auth_web.dart' as _firebase_auth_web;
-import 'package:firebase_core_web/firebase_core_web.dart' as _firebase_core_web;
 
 /// Default [ClientOptions] for use with your Jaspr project.
 ///
@@ -27,12 +22,4 @@ import 'package:firebase_core_web/firebase_core_web.dart' as _firebase_core_web;
 ///   runApp(...);
 /// }
 /// ```
-ClientOptions get defaultClientOptions => ClientOptions(
-  initialize: () {
-    final Registrar registrar = webPluginRegistrar;
-    _cloud_firestore_web.FirebaseFirestoreWeb.registerWith(registrar);
-    _firebase_auth_web.FirebaseAuthWeb.registerWith(registrar);
-    _firebase_core_web.FirebaseCoreWeb.registerWith(registrar);
-    registrar.registerMessageHandler();
-  },
-);
+ClientOptions get defaultClientOptions => ClientOptions();
