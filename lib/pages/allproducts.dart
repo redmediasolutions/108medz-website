@@ -24,16 +24,29 @@ class _ProductsPageState extends State<ProductsPage> {
   bool _isLoadingMore = false;
   int _page = 1;
   bool _hasMore = true;
+  String _searchQuery = '';
   bool _showLoginPopup = false;
 
   @override
   Component build(BuildContext context) {
+    final query = _searchQuery.trim().toLowerCase();
     final visibleProducts = _products
         .where((p) => p.price.trim().isNotEmpty && p.price.trim() != '0')
+        .where((p) {
+          if (query.isEmpty) return true;
+          final name = p.name.toLowerCase();
+          final category = p.category.toLowerCase();
+          return name.contains(query) || category.contains(query);
+        })
         .toList();
 
     return div(classes: 'products-page', [
-      HomeHeader(cartCount: CartStore.items.length, onSearch: (_) {}, onCartTap: () {}, onProfileTap: () => context.push('/profile')),
+      HomeHeader(
+        cartCount: CartStore.items.length,
+        onSearch: (value) => setState(() => _searchQuery = value),
+        onCartTap: () {},
+        onProfileTap: () => context.push('/profile'),
+      ),
       main_(classes: 'container', [
         if (_isLoading)
           div(classes: 'loading-state', [text('Loading products...')])
@@ -298,7 +311,6 @@ class _ProductsPageState extends State<ProductsPage> {
     ]);
   }
 }
-
 
 
 

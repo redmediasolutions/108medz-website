@@ -118,19 +118,23 @@ class _ProfilePageState extends State<ProfilePage> {
     return div(classes: 'profile-page', [
 
       div(classes: 'profile-header', [
-        div(classes: 'profile-brand', [
-          img(
-            src: '/images/108medz%20logo.png',
-            alt: '108 Medz',
-            classes: 'profile-logo',
-          ),
-          div([
-            h1(classes: 'profile-title', [text('108 MEDZ')]),
-            span(classes: 'profile-tagline', [text('YOUR HEALTH PARTNER')]),
-          ]),
-        ]),
-
-       
+        button(
+          classes: 'profile-brand-btn',
+          events: {'click': (_) => context.push('/')},
+          [
+            div(classes: 'profile-brand', [
+              img(
+                src: '/images/108medz%20logo.png',
+                alt: '108 Medz',
+                classes: 'profile-logo',
+              ),
+              div([
+                h1(classes: 'profile-title', [text('108 MEDZ')]),
+                span(classes: 'profile-tagline', [text('YOUR HEALTH PARTNER')]),
+              ]),
+            ]),
+          ],
+        ),
       ]),
 
       /// PROFILE CARD
