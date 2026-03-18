@@ -80,7 +80,11 @@ class _ProductPageState extends State<ProductPage> {
         //span(classes: 'material-symbols-outlined', [text('search')]),
         Link(
           to: '/cart',
-          child: span(classes: 'material-symbols-outlined', [text('shopping_cart')]),
+          child: span(classes: 'nav-icon product-cart-icon', [
+            span(classes: 'material-symbols-outlined', [text('shopping_cart')]),
+            if (CartStore.items.isNotEmpty)
+              span(classes: 'nav-badge', [text('${CartStore.items.length}')]),
+          ]),
         ),
       ]),
     ]);
