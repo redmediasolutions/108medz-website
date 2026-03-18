@@ -71,7 +71,7 @@ class _CategoryProductsPageState extends State<CategoryProductsPage> {
         onCartTap: () {},
         onProfileTap: () => context.push('/profile'),
       ),
-      main_(classes: 'container', [
+      main_(classes: 'page-shell', [
         div(classes: 'section-header', [
           Link(
             to: '/',

@@ -72,7 +72,7 @@ if (showCallPopup) _callPopup();
       builder: (context) {
         return div(classes: 'main-wrapper', [
           HomeHeader(cartCount: CartStore.items.length, onSearch: (value) => setState(() => _searchQuery = value), onCartTap: () => setState(() => _showCart = true), onProfileTap: () => context.push('/profile')),
-          main_(classes: 'container', [
+          main_(classes: 'page-shell', [
             HeroSection(context),
             HomeActions(onPrescriptionTap: () => setState(() { showPrescriptionPopup = true; }), onCallTap: () => setState(() { showCallPopup = true; })),
             _buildDynamicCategories(context),

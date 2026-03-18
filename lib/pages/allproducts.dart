@@ -47,7 +47,7 @@ class _ProductsPageState extends State<ProductsPage> {
         onCartTap: () {},
         onProfileTap: () => context.push('/profile'),
       ),
-      main_(classes: 'container', [
+      main_(classes: 'page-shell', [
         if (_isLoading)
           div(classes: 'loading-state', [text('Loading products...')])
         else if (visibleProducts.isEmpty)

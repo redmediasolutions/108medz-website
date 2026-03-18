@@ -41,12 +41,8 @@ class _CartPageState extends State<CartPage> {
     double shipping = 29;
     double total = subtotal + tax + shipping;
 
-    return div(attributes: {
-      'style': 'background:linear-gradient(180deg,#cfeefe 0%,#eaf6fd 55%,#ffffff 100%);min-height:100vh;padding:20px;font-family:Poppins, sans-serif;'
-    }, [
-      div(attributes: {
-        'style': 'max-width:520px;margin:0 auto;'
-      }, [
+    return div(classes: 'cart-page', [
+      div(classes: 'page-shell', [
 
       /// HEADER
       div(attributes: {

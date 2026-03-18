@@ -55,7 +55,7 @@ class _ProductPageState extends State<ProductPage> {
 
         return div(classes: 'product-page', [
           _buildAppBar(),
-          main_(classes: 'product-content', [
+          main_(classes: 'page-shell product-content', [
             _buildHero(product),
             _buildInfo(product, price, mrp, discount),
             _buildSaltCard(product),
