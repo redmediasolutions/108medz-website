@@ -3,26 +3,28 @@ frontend:
   phases:
     preBuild:
       commands:
-        # 1. Added -L to follow redirects and -sS to show errors but keep logs clean
-        - echo "Downloading Dart SDK (this may take a minute)..."
+        - echo "Downloading Dart SDK..."
         - curl -L -sS -O https://storage.googleapis.com/dart-archive/channels/stable/release/latest/sdk/dartsdk-linux-x64-release.zip
-        
-        # 2. Check if file exists before extracting
-        - ls -lh dartsdk-linux-x64-release.zip
         
         - echo "Extracting..."
         - python3 -m zipfile -e dartsdk-linux-x64-release.zip .
         
+        # Move dart-sdk to a stable location and set PATH
         - export PATH="$PATH:$(pwd)/dart-sdk/bin"
         - dart --version
         
-        # 3. Increase pub timeout for slower network conditions
+        - echo "Installing Jaspr CLI..."
         - dart pub global activate jaspr_cli
+        # CRITICAL: Add both Dart and Pub Cache to PATH
         - export PATH="$PATH":"$HOME/.pub-cache/bin"
+        
+        - echo "Getting dependencies for 108 Medz..."
         - dart pub get
     build:
       commands:
-        - echo "Building 108 Medz Website..."
+        - echo "Starting Jaspr Production Build..."
+        # Using 'export' again here to ensure the build phase sees the path
+        - export PATH="$PATH:$(pwd)/dart-sdk/bin:$HOME/.pub-cache/bin"
         - jaspr build --release
   artifacts:
     baseDirectory: build/jaspr
