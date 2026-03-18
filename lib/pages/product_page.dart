@@ -77,8 +77,11 @@ class _ProductPageState extends State<ProductPage> {
       ),
       div(classes: 'product-appbar-title', [text('Medicine Information')]),
       div(classes: 'product-appbar-actions', [
-        span(classes: 'material-symbols-outlined', [text('search')]),
-        span(classes: 'material-symbols-outlined', [text('shopping_cart')]),
+        //span(classes: 'material-symbols-outlined', [text('search')]),
+        Link(
+          to: '/cart',
+          child: span(classes: 'material-symbols-outlined', [text('shopping_cart')]),
+        ),
       ]),
     ]);
   }
@@ -179,6 +182,7 @@ class _ProductPageState extends State<ProductPage> {
                 quantity: _quantity,
               ),
             );
+            context.push('/cart');
           }
         },
         [
