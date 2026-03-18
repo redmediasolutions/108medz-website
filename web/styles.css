@@ -160,6 +160,14 @@ body {
   gap: 12px;
 }
 
+.brand-btn {
+  border: none;
+  background: transparent;
+  padding: 0;
+  cursor: pointer;
+  text-align: left;
+}
+
 .brand-text h1 { margin: 0; font-size: 1.25rem; color: var(--primary); }
 .brand-text span { font-size: 0.75rem; letter-spacing: 1px; color: var(--text-muted); font-weight: 500; }
 
@@ -614,6 +622,14 @@ body {
   display: flex;
   align-items: center;
   gap: 12px;
+}
+
+.profile-brand-btn {
+  border: none;
+  background: transparent;
+  padding: 0;
+  cursor: pointer;
+  text-align: left;
 }
 
 .profile-logo {
