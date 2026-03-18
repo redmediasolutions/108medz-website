@@ -33,21 +33,19 @@ class _ReelsSectionState extends State<ReelsSection> {
         }
 
         return section(
-          attributes: {'style': 'padding: 24px 0; background: white;'},
+          classes: 'reels-section',
           [
             div(classes: 'container', [
               h2(
-                attributes: {'style': 'font-size: 1.2rem; font-weight: 600; margin-bottom: 16px; padding: 0 16px;'},
+                classes: 'reels-title',
                 [text('Health Reels')]
               ),
               div(
+                classes: 'reels-grid',
                 attributes: {
                   'style': '''
-                    display: grid; 
                     grid-template-columns: repeat(auto-fit, 190px); 
                     justify-content: start;
-                    gap: 6px; 
-                    padding: 0 8px;
                   '''
                 },
                 [
