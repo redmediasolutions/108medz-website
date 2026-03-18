@@ -5,6 +5,7 @@ import 'package:medzsite/pages/health_Post.dart';
 import 'package:medzsite/pages/home_page.dart';
 import 'package:medzsite/pages/login.dart';
 import 'package:medzsite/pages/account_deletion.dart';
+import 'package:medzsite/pages/category_products_page.dart';
 import 'package:medzsite/pages/prescriptions.dart';
 import 'package:medzsite/pages/profile.dart';
 import 'package:medzsite/pages/product_page.dart';
@@ -19,6 +20,16 @@ class App extends StatelessComponent {
       Router(routes: [
         Route(path: '/', builder: (context, state) => HomePage()),
         Route(path: '/products', builder: (context, state) => ProductsPage()),
+        Route(
+          path: '/category/:id',
+          builder: (context, state) {
+            final id = int.tryParse(state.params['id'] ?? '');
+            if (id == null) {
+              return ProductsPage();
+            }
+            return CategoryProductsPage(categoryId: id);
+          },
+        ),
         Route(
           path: '/product/:id',
           builder: (context, state) {

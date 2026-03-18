@@ -76,7 +76,7 @@ if (showCallPopup) _callPopup();
           main_(classes: 'container', [
             HeroSection(),
             HomeActions(onPrescriptionTap: () => setState(() { showPrescriptionPopup = true; }), onCallTap: () => setState(() { showCallPopup = true; })),
-            _buildDynamicCategories(),
+            _buildDynamicCategories(context),
             _buildPopularMedicines(),
             HealthInfoSection(),
             HomeFooter(),
@@ -313,7 +313,7 @@ if (showCallPopup) _callPopup();
 
   //====================CATEGORIES====================
 
-  Component _buildDynamicCategories() {
+  Component _buildDynamicCategories(BuildContext context) {
     final wooIds = _categories
         .map((c) => c['id'])
         .whereType<int>()
@@ -333,20 +333,16 @@ if (showCallPopup) _callPopup();
           for (var cat in visible)
             CategoryPill(
               category: cat,
-              onTap: () => _filterByCategory(cat['categoryId']),
+              onTap: () => _openCategory(context, cat['categoryId']),
             )
       ])
     ]);
   }
 
-  void _filterByCategory(int id) async {
-    setState(() => _isLoading = true);
-    final results = await _apiService.fetchProductsByCategory(id);
-
-    setState(() {
-      _products = results;
-      _isLoading = false;
-    });
+  void _openCategory(BuildContext context, dynamic id) {
+    final categoryId = id is int ? id : int.tryParse(id?.toString() ?? '');
+    if (categoryId == null) return;
+    context.push('/category/$categoryId');
   }
 
   int? _findHomeCategoryId() {
@@ -469,7 +465,6 @@ if (showCallPopup) _callPopup();
     }
   }
 }
-
 
 
 
