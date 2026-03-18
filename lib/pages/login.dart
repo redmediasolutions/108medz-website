@@ -6,6 +6,7 @@ import 'package:firebase_dart/firebase_dart.dart';
 import 'package:jaspr_router/jaspr_router.dart';
 import 'package:medzsite/util/firebase_options.dart';
 import 'package:medzsite/store/cart_store.dart';
+import 'package:medzsite/util/user_profile_store.dart';
 
 
 
@@ -146,32 +147,11 @@ class _MobileLoginPageState extends State<MobileLoginPage> {
   }
 
   Future<bool> _needsProfileSetup(User user) async {
-    const projectId = 'medz-9eda1';
-    const apiKey = 'AIzaSyDs7aCWHGL6V6_4B3_PA3NPpMLjhxJehKs';
-    final uri = Uri.parse(
-      'https://firestore.googleapis.com/v1/projects/$projectId/databases/(default)/documents/Users/${user.uid}?key=$apiKey',
-    );
-
-    try {
-      final token = await user.getIdToken();
-      final res = await http.get(
-        uri,
-        headers: {'Authorization': 'Bearer $token'},
-      ).timeout(const Duration(seconds: 10));
-
-      if (res.statusCode == 404) return true;
-      if (res.statusCode != 200) return false;
-
-      final data = jsonDecode(res.body) as Map<String, dynamic>;
-      final fields = data['fields'] as Map<String, dynamic>? ?? {};
-      String? str(String key) => fields[key]?['stringValue']?.toString();
-
-      final name = (str('name') ?? '').trim();
-      final email = (str('email') ?? '').trim();
-      return name.isEmpty || email.isEmpty;
-    } catch (_) {
-      return false;
-    }
+    final profile = await UserProfileStore.fetchProfile(user);
+    if (profile == null) return true;
+    final name = (profile['display_name'] ?? '').toString().trim();
+    final email = (profile['email'] ?? '').toString().trim();
+    return name.isEmpty || email.isEmpty;
   }
 
   //================ UI ==================

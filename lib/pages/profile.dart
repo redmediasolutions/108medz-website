@@ -1,11 +1,10 @@
 import 'package:jaspr/dom.dart';
 import 'package:jaspr/jaspr.dart';
 import 'package:jaspr_router/jaspr_router.dart';
-import 'dart:convert';
 import 'dart:async';
 
 import 'package:firebase_dart/firebase_dart.dart';
-import 'package:http/http.dart' as http;
+import 'package:medzsite/util/user_profile_store.dart';
 
 class ProfilePage extends StatefulComponent {
   final bool? isAnonymous;
@@ -38,31 +37,8 @@ class _ProfilePageState extends State<ProfilePage> {
     }
   }
 
-  Future<Map<String, dynamic>?> _fetchProfile(String uid) async {
-    const projectId = 'medz-9eda1';
-    const apiKey = 'AIzaSyDs7aCWHGL6V6_4B3_PA3NPpMLjhxJehKs';
-    final uri = Uri.parse(
-      'https://firestore.googleapis.com/v1/projects/$projectId/databases/(default)/documents/Users/$uid?key=$apiKey',
-    );
-
-    try {
-      final token = await _currentUserSafe()?.getIdToken();
-      final res = await http.get(
-        uri,
-        headers: token == null ? {} : {'Authorization': 'Bearer $token'},
-      ).timeout(const Duration(seconds: 10));
-      if (res.statusCode != 200) return null;
-      final data = json.decode(res.body) as Map<String, dynamic>;
-      final fields = data['fields'] as Map<String, dynamic>? ?? {};
-      String? str(String key) => fields[key]?['stringValue']?.toString();
-      return {
-        'name': str('name') ?? '',
-        'email': str('email') ?? '',
-        'phone': str('phone') ?? '',
-      };
-    } catch (_) {
-      return null;
-    }
+  Future<Map<String, dynamic>?> _fetchProfile(User user) async {
+    return UserProfileStore.fetchProfile(user);
   }
 
   @override
@@ -97,7 +73,7 @@ class _ProfilePageState extends State<ProfilePage> {
     final bool isAnon = user?.isAnonymous ?? component.isAnonymous ?? true;
     if (!isAnon && user != null && !_loadingProfile && _profile == null) {
       _loadingProfile = true;
-      _fetchProfile(user.uid).then((data) {
+      _fetchProfile(user).then((data) {
         if (!mounted) return;
         setState(() {
           _profile = data;
@@ -107,8 +83,8 @@ class _ProfilePageState extends State<ProfilePage> {
     }
 
     final String displayName =
-        (_profile?['name']?.toString().trim().isNotEmpty == true)
-            ? _profile!['name']
+        (_profile?['display_name']?.toString().trim().isNotEmpty == true)
+            ? _profile!['display_name']
             : (user?.displayName ?? component.name ?? 'Guest User');
     final String emailLine =
         (_profile?['email']?.toString().trim().isNotEmpty == true)
@@ -263,5 +239,6 @@ class _ProfilePageState extends State<ProfilePage> {
     context.push('/login');
   }
 }
+
 
 

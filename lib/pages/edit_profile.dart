@@ -1,11 +1,10 @@
-﻿import 'dart:convert';
 
 import 'package:jaspr/dom.dart';
 import 'package:jaspr/jaspr.dart';
 import 'package:jaspr_router/jaspr_router.dart';
-import 'package:http/http.dart' as http;
 import 'package:firebase_dart/firebase_dart.dart';
 import 'package:medzsite/component.dart';
+import 'package:medzsite/util/user_profile_store.dart';
 
 class EditProfilePage extends StatefulComponent {
   const EditProfilePage({super.key});
@@ -28,77 +27,29 @@ class _EditProfilePageState extends State<EditProfilePage> {
     }
   }
 
-  Future<Map<String, dynamic>?> _fetchProfile(String uid) async {
-    const projectId = 'medz-9eda1';
-    const apiKey = 'AIzaSyDs7aCWHGL6V6_4B3_PA3NPpMLjhxJehKs';
-    final uri = Uri.parse(
-      'https://firestore.googleapis.com/v1/projects/$projectId/databases/(default)/documents/Users/$uid?key=$apiKey',
-    );
-
-    try {
-      final token = await _currentUserSafe()?.getIdToken();
-      final res = await http.get(
-        uri,
-        headers: token == null ? {} : {'Authorization': 'Bearer $token'},
-      ).timeout(const Duration(seconds: 10));
-      if (res.statusCode != 200) return null;
-      final data = json.decode(res.body) as Map<String, dynamic>;
-      final fields = data['fields'] as Map<String, dynamic>? ?? {};
-      String? str(String key) => fields[key]?['stringValue']?.toString();
-      return {
-        'name': str('name') ?? '',
-        'email': str('email') ?? '',
-      };
-    } catch (_) {
-      return null;
-    }
+  Future<Map<String, dynamic>?> _fetchProfile(User user) async {
+    return UserProfileStore.fetchProfile(user);
   }
 
-  Future<void> _saveProfile(String uid, String phone) async {
+  Future<void> _saveProfile(User user, String phone) async {
     if (_saving) return;
     setState(() {
       _saving = true;
       _message = null;
     });
 
-    const projectId = 'medz-9eda1';
-    const apiKey = 'AIzaSyDs7aCWHGL6V6_4B3_PA3NPpMLjhxJehKs';
-    final uri = Uri.parse(
-      'https://firestore.googleapis.com/v1/projects/$projectId/databases/(default)/documents/Users/$uid?key=$apiKey',
-    );
-
-    final body = {
-      'fields': {
-        'name': {'stringValue': _name.trim()},
-        'email': {'stringValue': _email.trim()},
-        if (phone.isNotEmpty) 'phone': {'stringValue': phone},
-        'updatedAt': {'timestampValue': DateTime.now().toUtc().toIso8601String()},
-      }
-    };
-
     try {
-      final token = await _currentUserSafe()?.getIdToken();
-      final headers = {
-        'Content-Type': 'application/json',
-        if (token != null) 'Authorization': 'Bearer $token',
-      };
-      final res = await http.patch(
-        uri,
-        headers: headers,
-        body: json.encode(body),
-      ).timeout(const Duration(seconds: 10));
-
-      if (res.statusCode >= 200 && res.statusCode < 300) {
-        setState(() {
-          _message = 'Profile updated';
-        });
-        context.push('/profile');
-      } else {
-        setState(() {
-          _message = 'Update failed';
-        });
-      }
-    } catch (e) {
+      await UserProfileStore.saveProfile(
+        user,
+        name: _name,
+        email: _email,
+        phone: phone,
+      );
+      setState(() {
+        _message = 'Profile updated';
+      });
+      context.push('/profile');
+    } catch (_) {
       setState(() {
         _message = 'Update failed';
       });
@@ -126,10 +77,10 @@ class _EditProfilePageState extends State<EditProfilePage> {
 
     return SyncState.aggregate(
       id: 'edit-profile-${user.uid}',
-      create: () => _fetchProfile(user.uid),
+      create: () => _fetchProfile(user),
       update: (data) {
         if (data != null) {
-          _name = data['name'] ?? _name;
+          _name = data['display_name'] ?? _name;
           _email = data['email'] ?? _email;
         }
       },
@@ -147,7 +98,10 @@ class _EditProfilePageState extends State<EditProfilePage> {
               div(classes: 'profile-field', [
                 label(classes: 'profile-label', [text('Full name')]),
                 div(classes: 'profile-input-wrap', [
-                  span(classes: 'profile-input-icon', [text('👤')]),
+                  span(
+                    classes: 'material-symbols-outlined profile-input-icon',
+                    [text('person')],
+                  ),
                   input(
                     classes: 'profile-input',
                     attributes: {
@@ -165,7 +119,10 @@ class _EditProfilePageState extends State<EditProfilePage> {
               div(classes: 'profile-field', [
                 label(classes: 'profile-label', [text('Email')]),
                 div(classes: 'profile-input-wrap', [
-                  span(classes: 'profile-input-icon', [text('✉')]),
+                  span(
+                    classes: 'material-symbols-outlined profile-input-icon',
+                    [text('mail')],
+                  ),
                   input(
                     classes: 'profile-input',
                     attributes: {
@@ -188,8 +145,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
               events: _saving
                   ? {}
                   : {
-                      'click': (_) =>
-                          _saveProfile(user.uid, user.phoneNumber ?? ''),
+                      'click': (_) => _saveProfile(user, user.phoneNumber ?? ''),
                     },
               [text(_saving ? 'Saving...' : 'Save & Continue')],
             ),
@@ -202,4 +158,5 @@ class _EditProfilePageState extends State<EditProfilePage> {
     );
   }
 }
+
 
