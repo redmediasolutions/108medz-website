@@ -13,6 +13,8 @@ import 'package:medzsite/pages/allproducts.dart';
 import 'package:medzsite/pages/reels.dart';
 import 'package:medzsite/pages/webview_page.dart';
 import 'package:medzsite/pages/edit_profile.dart';
+import 'package:medzsite/pages/cart_page.dart';
+import 'package:medzsite/store/cart_store.dart';
 
 class App extends StatelessComponent {
   @override
@@ -43,6 +45,13 @@ class App extends StatelessComponent {
         ),
         Route(path: '/reels', builder: (context, state) => ReelsSection()),
         Route(path: '/health-posts', builder: (context, state) => HorizontalPosts()),
+        Route(
+          path: '/cart',
+          builder: (context, state) => CartPage(
+            cart: CartStore.items,
+            onBack: () => context.push('/'),
+          ),
+        ),
         Route(path: '/webview', builder: (context, state) => const WebViewPage()),
         Route(path: '/profile', builder: (context, state) => const ProfilePage()),
         

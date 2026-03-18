@@ -11,7 +11,7 @@ class WebViewPage extends StatelessComponent {
     final targetUrl = uri.queryParameters['url'];
 
     if (targetUrl == null || targetUrl.isEmpty) {
-      return div(classes: 'container', [
+      return div(classes: 'page-shell', [
         h2([text('Invalid link')]),
         p([text('No URL provided.')]),
       ]);

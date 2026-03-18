@@ -41,12 +41,8 @@ class _CartPageState extends State<CartPage> {
     double shipping = 29;
     double total = subtotal + tax + shipping;
 
-    return div(attributes: {
-      'style': 'background:linear-gradient(180deg,#cfeefe 0%,#eaf6fd 55%,#ffffff 100%);min-height:100vh;padding:20px;font-family:Poppins, sans-serif;'
-    }, [
-      div(attributes: {
-        'style': 'max-width:520px;margin:0 auto;'
-      }, [
+    return div(classes: 'cart-page', [
+      div(classes: 'page-shell', [
 
       /// HEADER
       div(attributes: {
@@ -77,53 +73,30 @@ class _CartPageState extends State<CartPage> {
       ]),
 
       if (component.cart.isEmpty)
-        div(attributes: {
-          'style': '''
-          margin-top:40px;
-          display:flex;
-          flex-direction:column;
-          align-items:center;
-          justify-content:center;
-          gap:18px;
-          color:#94a3b8;
-          '''
-        }, [
-          span(
-            classes: 'material-symbols-outlined',
-            attributes: {'style': 'font-size:64px;color:#b6c4cf;'},
-            [text('shopping_cart')]
-          ),
-          span(attributes: {'style': 'font-size:18px;font-weight:600;color:#9aa6b2;'}, [
-            text('No Items in Cart')
-          ]),
-          button(
-            attributes: {
-              'style': '''
-              margin-top:10px;
-              background:#4b4b4b;
-              color:white;
-              border:none;
-              padding:12px 26px;
-              border-radius:14px;
-              display:flex;
-              align-items:center;
-              gap:10px;
-              font-weight:600;
-              cursor:pointer;
-              box-shadow:0 8px 16px rgba(0,0,0,0.12);
-              '''
-            },
-            events: {
-              'click': (_) => component.onAddItems?.call()
-            },
-            [
-              span(classes: 'material-symbols-outlined', [text('add')]),
-              Link(
-          to: '/products',
-          child: text('Add items')
-        )
-            ]
-          )
+        div(classes: 'cart-empty', [
+          div(classes: 'cart-empty-card', [
+            div(classes: 'cart-empty-icon', [
+              span(classes: 'material-symbols-outlined', [text('shopping_cart')])
+            ]),
+            h3(classes: 'cart-empty-title', [text('Your cart is waiting')]),
+            p(classes: 'cart-empty-sub', [
+              text('Discover trusted medicines, verified brands, and best savings for your health.')
+            ]),
+            div(classes: 'cart-empty-actions', [
+              button(
+                classes: 'cart-empty-btn',
+                events: {'click': (_) => component.onAddItems?.call()},
+                [
+                  span(classes: 'material-symbols-outlined', [text('search')]),
+                  Link(to: '/products', child: text('Browse Medicines'))
+                ],
+              ),
+              div(classes: 'cart-empty-note', [
+                span(classes: 'material-symbols-outlined', [text('verified')]),
+                text('Genuine products • Fast delivery • Easy returns')
+              ])
+            ])
+          ])
         ])
       else
       /// ORDER CARD

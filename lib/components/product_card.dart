@@ -108,7 +108,14 @@ class ProductCard extends StatelessComponent {
               'style':
                   'background:#2c4374;color:white;border:none;padding:8px 14px;border-radius:8px;display:flex;align-items:center;gap:5px;cursor:pointer;'
             },
-            events: {'click': (_) => onAdd()},
+            events: {
+              'click': (e) {
+                (e as dynamic).stopPropagation?.call();
+                (e as dynamic).preventDefault?.call();
+                onAdd();
+                context.push('/cart');
+              }
+            },
             [
               span(classes: 'material-symbols-outlined', [
                 text('add_shopping_cart')

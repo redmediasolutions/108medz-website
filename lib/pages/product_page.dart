@@ -55,7 +55,7 @@ class _ProductPageState extends State<ProductPage> {
 
         return div(classes: 'product-page', [
           _buildAppBar(),
-          main_(classes: 'product-content', [
+          main_(classes: 'page-shell product-content', [
             _buildHero(product),
             _buildInfo(product, price, mrp, discount),
             _buildSaltCard(product),
@@ -77,8 +77,15 @@ class _ProductPageState extends State<ProductPage> {
       ),
       div(classes: 'product-appbar-title', [text('Medicine Information')]),
       div(classes: 'product-appbar-actions', [
-        span(classes: 'material-symbols-outlined', [text('search')]),
-        span(classes: 'material-symbols-outlined', [text('shopping_cart')]),
+        //span(classes: 'material-symbols-outlined', [text('search')]),
+        Link(
+          to: '/cart',
+          child: span(classes: 'nav-icon product-cart-icon', [
+            span(classes: 'material-symbols-outlined', [text('shopping_cart')]),
+            if (CartStore.items.isNotEmpty)
+              span(classes: 'nav-badge', [text('${CartStore.items.length}')]),
+          ]),
+        ),
       ]),
     ]);
   }
@@ -179,6 +186,7 @@ class _ProductPageState extends State<ProductPage> {
                 quantity: _quantity,
               ),
             );
+            context.push('/cart');
           }
         },
         [

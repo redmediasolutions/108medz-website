@@ -25,22 +25,22 @@ class _HorizontalPostsState extends State<HorizontalPosts> {
       },
       builder: (context) {
         return section(
-          attributes: {'style': 'padding: 24px 0; background: #f9fafb;'},
+          classes: 'health-section',
           [
             /// Header Section
-            div(classes: 'header', attributes: {'style': 'padding: 0 16px; margin-bottom: 16px;'}, [
-              div(attributes: {'style': 'display: flex; justify-content: space-between; align-items: center;'}, [
-                h2(attributes: {'style': 'font-size: 16px; font-weight: 600; margin: 0;'}, [
+            div(classes: 'health-header', [
+              div(classes: 'health-header-row', [
+                h2(classes: 'health-title', [
                   text("Health Information")
                 ]),
                 // Desktop Arrows (Optional for web, usually handled by scrollbar/touch)
-                div(classes: 'arrows', [
+                div(classes: 'health-arrows', [
                   _arrowButton('chevron_left', 'left'),
-                  span(attributes: {'style': 'width: 8px; display: inline-block;'}, []),
+                  span(classes: 'health-arrow-spacer', []),
                   _arrowButton('chevron_right', 'right'),
                 ]),
               ]),
-              p(attributes: {'style': 'font-size: 13px; color: #4b5563; margin: 4px 0 0;'}, [
+              p(classes: 'health-subtitle', [
                 text("Learn About Your Health and Generic Medicines")
               ]),
             ]),
@@ -48,12 +48,9 @@ class _HorizontalPostsState extends State<HorizontalPosts> {
             /// Horizontal Scroll List
             div(
               id: 'scroll-container',
+              classes: 'health-scroll',
               attributes: {
                 'style': '''
-                  display: flex;
-                  overflow-x: auto;
-                  gap: 16px;
-                  padding: 0 16px 16px;
                   scroll-behavior: smooth;
                   scrollbar-width: none; /* Hide scrollbar for Firefox */
                 '''
@@ -74,16 +71,11 @@ class _HorizontalPostsState extends State<HorizontalPosts> {
 
   Component _arrowButton(String icon, String direction) {
     return button(
+      classes: 'health-arrow',
       attributes: {
         'onClick': "document.getElementById('scroll-container').scrollBy({left: ${direction == 'left' ? -300 : 300}, behavior: 'smooth'})",
-        'style': '''
-          background: white; border: none; border-radius: 50%;
-          width: 32px; height: 32px; cursor: pointer;
-          box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-          color: #2B4C7E; align-items: center; justify-content: center;
-        '''
       },
-      [span(classes: 'material-symbols-outlined', attributes: {'style': 'font-size: 18px;'}, [text(icon)])]
+      [span(classes: 'material-symbols-outlined health-arrow-icon', [text(icon)])]
     );
   }
 
