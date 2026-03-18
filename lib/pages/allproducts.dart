@@ -3,6 +3,7 @@ import 'package:jaspr/jaspr.dart';
 import 'package:jaspr_router/jaspr_router.dart';
 import 'package:medzsite/components/footer.dart';
 import 'package:medzsite/components/header.dart';
+import 'package:medzsite/components/product_card.dart';
 import 'package:medzsite/model/cart_item.dart';
 import 'package:medzsite/model/products.dart';
 import 'package:medzsite/store/cart_store.dart';
@@ -38,7 +39,18 @@ class _ProductsPageState extends State<ProductsPage> {
           div(classes: 'empty-state', [text('No products found.')])
         else
           div(classes: 'grid-cols-4', [
-            for (var product in visibleProducts) _productCard(product),
+            for (var product in visibleProducts)
+              ProductCard(product: product, onAdd: () {
+                setState(() {
+                  CartStore.addItem(
+                    CartItem(
+                      name: product.name,
+                      price: product.price,
+                      image: product.imageUrl,
+                    ),
+                  );
+                });
+              }),
           ]),
         if (!_isLoading && _hasMore)
           div(attributes: {'style': 'margin: 24px 0; text-align: center;'}, [
@@ -226,6 +238,9 @@ class _ProductsPageState extends State<ProductsPage> {
     ]);
   }
 }
+
+
+
 
 
 

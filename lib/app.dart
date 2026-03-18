@@ -1,4 +1,4 @@
-import 'package:jaspr/dom.dart';
+﻿import 'package:jaspr/dom.dart';
 import 'package:jaspr/jaspr.dart';
 import 'package:jaspr_router/jaspr_router.dart';
 import 'package:medzsite/pages/health_Post.dart';
@@ -8,9 +8,10 @@ import 'package:medzsite/pages/account_deletion.dart';
 import 'package:medzsite/pages/prescriptions.dart';
 import 'package:medzsite/pages/profile.dart';
 import 'package:medzsite/pages/product_page.dart';
-import 'package:medzsite/pages/products_page.dart';
+import 'package:medzsite/pages/allproducts.dart';
 import 'package:medzsite/pages/reels.dart';
 import 'package:medzsite/pages/webview_page.dart';
+import 'package:medzsite/pages/edit_profile.dart';
 
 class App extends StatelessComponent {
   @override
@@ -32,11 +33,9 @@ class App extends StatelessComponent {
         Route(path: '/reels', builder: (context, state) => ReelsSection()),
         Route(path: '/health-posts', builder: (context, state) => HorizontalPosts()),
         Route(path: '/webview', builder: (context, state) => const WebViewPage()),
-        Route(path: '/profile', builder: (context, state) => ProfilePage(
-          isAnonymous: true,
-          name: 'Guest User',
-          phone: '',
-        )),
+        Route(path: '/profile', builder: (context, state) => const ProfilePage()),
+        
+        Route(path: '/edit-profile', builder: (context, state) => const EditProfilePage()),
         Route(path: '/prescriptions', builder: (context, state) => PrescriptionsPage()),
         Route(path: '/delete-account', builder: (context, state) => const AccountDeletionPage()),
         Route(
@@ -48,3 +47,4 @@ class App extends StatelessComponent {
     ]);
   }
 }
+

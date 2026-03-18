@@ -1,10 +1,13 @@
 import 'package:jaspr/client.dart';
 import 'package:firebase_dart/firebase_dart.dart';
+import 'package:firebase_dart/implementation/pure_dart.dart' as firebase_dart;
 import 'app.dart';
 import 'main.client.options.dart';
 import 'package:medzsite/util/firebase_options.dart'; 
 
 void main() async {
+  // Register Firebase implementation for web/JS-free usage.
+  firebase_dart.FirebaseDart.setup();
   // Initialize Firebase using the pure-Dart SDK to avoid web plugin issues.
   try {
     await Firebase.initializeApp(

@@ -1,16 +1,21 @@
 import 'package:jaspr/dom.dart';
 import 'package:jaspr/jaspr.dart';
 import 'package:jaspr_router/jaspr_router.dart';
+import 'dart:convert';
+import 'dart:async';
+
+import 'package:firebase_dart/firebase_dart.dart';
+import 'package:http/http.dart' as http;
 
 class ProfilePage extends StatefulComponent {
-  final bool isAnonymous;
-  final String name;
-  final String phone;
+  final bool? isAnonymous;
+  final String? name;
+  final String? phone;
 
   const ProfilePage({
-    required this.isAnonymous,
-    required this.name,
-    required this.phone,
+    this.isAnonymous,
+    this.name,
+    this.phone,
   });
 
   @override
@@ -20,9 +25,95 @@ class ProfilePage extends StatefulComponent {
 class _ProfilePageState extends State<ProfilePage> {
 
   bool showLoginPopup = false;
+  Map<String, dynamic>? _profile;
+  bool _loadingProfile = false;
+  User? _user;
+  StreamSubscription<User?>? _authSub;
+
+  User? _currentUserSafe() {
+    try {
+      return FirebaseAuth.instance.currentUser;
+    } catch (_) {
+      return null;
+    }
+  }
+
+  Future<Map<String, dynamic>?> _fetchProfile(String uid) async {
+    const projectId = 'medz-9eda1';
+    const apiKey = 'AIzaSyDs7aCWHGL6V6_4B3_PA3NPpMLjhxJehKs';
+    final uri = Uri.parse(
+      'https://firestore.googleapis.com/v1/projects/$projectId/databases/(default)/documents/Users/$uid?key=$apiKey',
+    );
+
+    try {
+      final token = await _currentUserSafe()?.getIdToken();
+      final res = await http.get(
+        uri,
+        headers: token == null ? {} : {'Authorization': 'Bearer $token'},
+      ).timeout(const Duration(seconds: 10));
+      if (res.statusCode != 200) return null;
+      final data = json.decode(res.body) as Map<String, dynamic>;
+      final fields = data['fields'] as Map<String, dynamic>? ?? {};
+      String? str(String key) => fields[key]?['stringValue']?.toString();
+      return {
+        'name': str('name') ?? '',
+        'email': str('email') ?? '',
+        'phone': str('phone') ?? '',
+      };
+    } catch (_) {
+      return null;
+    }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    try {
+      _user = FirebaseAuth.instance.currentUser;
+      _authSub = FirebaseAuth.instance.authStateChanges().listen((u) {
+        if (!mounted) return;
+        setState(() {
+          _user = u;
+          if (u == null) {
+            _profile = null;
+          } else {
+            _profile = null;
+            _loadingProfile = false;
+          }
+        });
+      });
+    } catch (_) {}
+  }
+
+  @override
+  void dispose() {
+    _authSub?.cancel();
+    super.dispose();
+  }
 
   @override
   Component build(BuildContext context) {
+    final user = _user ?? _currentUserSafe();
+    final bool isAnon = user?.isAnonymous ?? component.isAnonymous ?? true;
+    if (!isAnon && user != null && !_loadingProfile && _profile == null) {
+      _loadingProfile = true;
+      _fetchProfile(user.uid).then((data) {
+        if (!mounted) return;
+        setState(() {
+          _profile = data;
+          _loadingProfile = false;
+        });
+      });
+    }
+
+    final String displayName =
+        (_profile?['name']?.toString().trim().isNotEmpty == true)
+            ? _profile!['name']
+            : (user?.displayName ?? component.name ?? 'Guest User');
+    final String emailLine =
+        (_profile?['email']?.toString().trim().isNotEmpty == true)
+            ? _profile!['email']
+            : (user?.email ?? 'Login to view details');
 
     return div(classes: 'profile-page', [
 
@@ -47,10 +138,10 @@ class _ProfilePageState extends State<ProfilePage> {
 
         /// USER INFO (shows placeholder when anonymous)
         div(classes: 'profile-user', [
-          h2([text(component.isAnonymous ? 'Guest User' : component.name)]),
+          h2([text(isAnon ? 'Guest User' : displayName)]),
           span(
             classes: 'profile-phone',
-            [text(component.isAnonymous ? 'Login to view details' : component.phone)],
+            [text(isAnon ? 'Login to view details' : emailLine)],
           )
         ]),
 
@@ -58,7 +149,7 @@ class _ProfilePageState extends State<ProfilePage> {
         h3(classes: 'profile-section-title', [text('Account Settings')]),
 
         _menuItem("Edit Profile", () {
-          print("Navigate to Edit Profile");
+          context.push('/edit-profile');
         }),
 
         _menuItem("Orders", () {
@@ -78,7 +169,7 @@ class _ProfilePageState extends State<ProfilePage> {
         }),
 
         /// CTA / LOGOUT
-        if (component.isAnonymous)
+        if (isAnon)
           div(classes: 'profile-guest', [
             button(
               classes: 'profile-primary-btn',
@@ -94,7 +185,7 @@ class _ProfilePageState extends State<ProfilePage> {
               classes: 'profile-logout-btn',
               events:{
                 'click': (_) {
-                  print("Logout");
+                  _logout();
                 }
               },
               [text("Log Out")]
@@ -145,7 +236,9 @@ class _ProfilePageState extends State<ProfilePage> {
   }
 
   void _handleMenuTap(VoidCallback onTap, bool requiresLogin) {
-    if (requiresLogin && component.isAnonymous) {
+    final user = _currentUserSafe();
+    final isAnon = user?.isAnonymous ?? component.isAnonymous ?? true;
+    if (requiresLogin && isAnon) {
       _promptLogin();
       return;
     }
@@ -156,6 +249,14 @@ class _ProfilePageState extends State<ProfilePage> {
     setState(() {
       showLoginPopup = true;
     });
+  }
+
+  Future<void> _logout() async {
+    try {
+      await FirebaseAuth.instance.signOut();
+    } catch (_) {}
+    setState(() {});
+    context.push('/login');
   }
 }
 
