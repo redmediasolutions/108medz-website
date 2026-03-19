@@ -24,6 +24,8 @@ class _ProductPageState extends State<ProductPage> {
   int _quantity = 1;
   bool _showLoginPopup = false;
 
+  
+
   @override
   Component build(BuildContext context) {
     return SyncState.aggregate(
@@ -49,9 +51,24 @@ class _ProductPageState extends State<ProductPage> {
         }
 
         final product = _product!;
-        final price = _parsePrice(product.price);
-        final mrp = _parsePrice(product.regularPrice);
-        final discount = _discountPercent(mrp, price);
+      final double? price = _parsePrice(product.price);
+final double? mrp = _parsePrice(product.regularPrice);
+
+final double displayPrice =
+    price ?? 0;
+
+final int? discount = _discountPercent(mrp, price);
+
+/// 🔹 UNIT PRICE
+final double? unitPrice = _calculateUnitPrice(
+  price: displayPrice,
+  packing: product.packSize,
+);
+
+/// 🔹 STOCK LOGIC (already from model)
+final bool isOutOfStock = product.isOutOfStock;
+final bool isNotForSale = product.isNotForSale;
+final bool canAddToCart = product.canAddToCart;
 
         return div(classes: 'product-page', [
           _buildAppBar(),
@@ -115,23 +132,45 @@ class _ProductPageState extends State<ProductPage> {
   }
 
   Component _buildInfo(Product product, double? price, double? mrp, int? discount) {
-    return div(classes: 'product-info', [
-      div(classes: 'product-brand', [text(product.category)]),
-      h2(classes: 'product-title', [text(product.name)]),
-      div(classes: 'product-sub', [text('Pack size details available')]),
-      div(classes: 'product-price-row', [
-        span(classes: 'product-price-main', [
-          text(_formatPrice(product.price)),
-        ]),
-        if (mrp != null && mrp > 0)
-          span(classes: 'product-price-mrp', [
-            text('MRP ${_formatPrice(product.regularPrice)}'),
-          ]),
-        if (discount != null)
-          span(classes: 'product-price-off', [text('$discount% off')]),
+  final bool isOutOfStock = product.isOutOfStock;
+  final bool isNotForSale = product.isNotForSale;
+
+  return div(classes: 'product-info', [
+    div(classes: 'product-brand', [text(product.brand)]),
+    h2(classes: 'product-title', [text(product.name)]),
+    div(classes: 'product-sub', [text('Pack size details available')]),
+
+    div(classes: 'product-price-row', [
+      span(classes: 'product-price-main', [
+        text(_formatPrice(product.price)),
       ]),
-    ]);
-  }
+      if (mrp != null && mrp > 0)
+        span(classes: 'product-price-mrp', [
+          text('MRP ${_formatPrice(product.regularPrice)}'),
+        ]),
+      if (discount != null)
+        span(classes: 'product-price-off', [text('$discount% off')]),
+    ]),
+
+    /// 🚨 STOCK STATUS BLOCK (NEW)
+    if (isOutOfStock)
+      div(attributes: {
+        'style':
+            'margin-top:8px;padding:6px 10px;background:#f8d7da;color:#721c24;border:1px solid #f5c6cb;border-radius:6px;font-size:12px;font-weight:600;width:fit-content;'
+      }, [
+        text('OUT OF STOCK')
+      ]),
+
+    /// 🚫 NOT FOR SALE BLOCK (NEW)
+    if (isNotForSale)
+      div(attributes: {
+        'style':
+            'margin-top:8px;padding:6px 10px;background:#fff3cd;color:#856404;border:1px solid #ffeeba;border-radius:6px;font-size:12px;font-weight:600;width:fit-content;'
+      }, [
+        text('NOT FOR SALE')
+      ]),
+  ]);
+}
 
   Component _buildSaltCard(Product product) {
     return div(classes: 'salt-card', [
@@ -139,11 +178,13 @@ class _ProductPageState extends State<ProductPage> {
         span(classes: 'material-symbols-outlined', [text('science')]),
         text('Salt Composition'),
       ]),
-      div(classes: 'salt-value', [text('${product.name} Composition')]),
+      div(classes: 'salt-value', [text(product.salt.isNotEmpty ? product.salt : 'Not Available')]),
     ]);
   }
 
   Component _buildQtyRow() {
+    final product = _product;
+    final bool isDisabled = product == null || !product.canAddToCart;
     return div(classes: 'qty-row', [
       div(classes: 'qty-control', [
         button(
@@ -169,15 +210,24 @@ class _ProductPageState extends State<ProductPage> {
         ),
       ]),
       button(
-        classes: 'btn-add-large',
-        events: {
+  classes: 'btn-add-large',
+  attributes: {
+    'style': isDisabled
+        ? 'background:#e0e0e0;color:#888;cursor:not-allowed;'
+        : ''
+  },
+  events: isDisabled
+      ? {}
+      : {
           'click': (_) {
             final product = _product;
             if (product == null) return;
+
             if (_isAnonymous()) {
               setState(() => _showLoginPopup = true);
               return;
             }
+
             CartStore.addItem(
               CartItem(
                 name: product.name,
@@ -186,14 +236,19 @@ class _ProductPageState extends State<ProductPage> {
                 quantity: _quantity,
               ),
             );
+
             context.push('/cart');
           }
         },
-        [
-          span(classes: 'material-symbols-outlined', [text('add')]),
-          text(' Add to Cart'),
-        ],
-      ),
+  [
+    span(classes: 'material-symbols-outlined', [text('add')]),
+    text(product?.isNotForSale == true
+        ? ' Not for Sale'
+        : product?.isOutOfStock == true
+            ? ' Out of Stock'
+            : ' Add to Cart'),
+  ],
+),
       a(
         href: 'https://wa.me/916366812108',
         classes: 'whatsapp-fab',
@@ -248,21 +303,6 @@ class _ProductPageState extends State<ProductPage> {
     ]);
   }
 
-  double? _parsePrice(String value) {
-    return double.tryParse(value);
-  }
-
-  String _formatPrice(String value) {
-    if (value.isEmpty) return 'Rs. 0';
-    return 'Rs. $value';
-  }
-
-  int? _discountPercent(double? mrp, double? price) {
-    if (mrp == null || price == null) return null;
-    if (mrp <= 0 || price <= 0 || mrp <= price) return null;
-    return ((mrp - price) / mrp * 100).round();
-  }
-
   bool _isAnonymous() {
     try {
       final user = FirebaseAuth.instance.currentUser;
@@ -271,6 +311,41 @@ class _ProductPageState extends State<ProductPage> {
       return true;
     }
   }
+
+  double? _parsePrice(String? value) {
+  if (value == null || value.isEmpty) return null;
+  return double.tryParse(value);
+}
+
+String _formatPrice(String value) {
+  final price = _parsePrice(value);
+  if (price == null) return '₹0';
+  return '₹${price.toStringAsFixed(2)}';
+}
+
+int? _discountPercent(double? mrp, double? price) {
+  if (mrp == null || price == null) return null;
+  if (mrp <= 0 || price <= 0 || mrp <= price) return null;
+  return ((mrp - price) / mrp * 100).round();
+}
+
+/// 🔹 UNIT COUNT
+int? _extractUnitCount(String? packing) {
+  if (packing == null) return null;
+  final match = RegExp(r'\d+').firstMatch(packing);
+  return match != null ? int.tryParse(match.group(0)!) : null;
+}
+
+/// 🔹 UNIT PRICE
+double? _calculateUnitPrice({
+  required double? price,
+  required String? packing,
+}) {
+  if (price == null) return null;
+  final units = _extractUnitCount(packing);
+  if (units == null || units == 0) return null;
+  return price / units;
+}
 
   Component _loginPopup(BuildContext context) {
     return div(attributes: {

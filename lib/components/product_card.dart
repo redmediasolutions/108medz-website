@@ -12,128 +12,188 @@ class ProductCard extends StatelessComponent {
     required this.onAdd,
   });
 
+  int? _extractUnitCount(String? packing) {
+    if (packing == null) return null;
+    final match = RegExp(r'\d+').firstMatch(packing);
+    return match != null ? int.tryParse(match.group(0)!) : null;
+  }
+
+  double? _calculateUnitPrice() {
+    final price = double.tryParse(product.price);
+    final unitCount = _extractUnitCount(product.packSize);
+    if (price == null || unitCount == null || unitCount == 0) return null;
+    return price / unitCount;
+  }
+
   @override
   Component build(BuildContext context) {
     double price = double.tryParse(product.price) ?? 0;
     double mrp = double.tryParse(product.regularPrice) ?? 0;
+
+    final unitPrice = _calculateUnitPrice();
 
     int discount = 0;
     if (mrp > 0 && mrp > price) {
       discount = (((mrp - price) / mrp) * 100).round();
     }
 
-    final cardBody = div(classes: 'product-card', attributes: {
-      'style':
-          'display:flex;gap:14px;padding:14px;border-radius:12px;background:white;box-shadow:0 2px 6px rgba(0,0,0,0.06);margin-bottom:16px;cursor:pointer;'
+    final bool isDisabled =
+        product.isOutOfStock || product.isNotForSale;
+
+    final card = div(attributes: {
+      'style': '''
+      background:#fff;
+      border-radius:16px;
+      padding:14px;
+      box-shadow:0 4px 12px rgba(0,0,0,0.06);
+      display:flex;
+      flex-direction:column;
+      gap:10px;
+      cursor:pointer;
+      '''
     }, [
-      /// PRODUCT IMAGE
-      div(classes: 'prod-img-box', attributes: {
-        'style':
-            'width:120px;height:120px;overflow:hidden;border-radius:8px;background:#f9fafb;display:flex;align-items:center;justify-content:center;'
+
+      /// IMAGE + DISCOUNT BADGE
+      div(attributes: {
+        'style': 'position:relative;'
       }, [
-        if (product.imageUrl.isNotEmpty)
-          img(src: product.imageUrl, attributes: {
-            'style': 'width:100%;height:100%;object-fit:cover;'
-          })
-        else
-          span(classes: 'material-symbols-outlined', [text('pill')])
-      ]),
-
-      /// PRODUCT DETAILS
-      div(classes: 'prod-details', attributes: {
-        'style': 'flex:1;display:flex;flex-direction:column;gap:6px;'
-      }, [
-        /// PRODUCT NAME
-        h3(classes: 'prod-title', attributes: {
-          'style': 'margin:0;font-size:16px;font-weight:600;'
-        }, [
-          text(product.name)
-        ]),
-
-        /// CATEGORY / BRAND
-        span(attributes: {
-          'style': 'font-size:13px;color:#777;'
-        }, [
-          text(product.category)
-        ]),
-
-        /// SALT COMPOSITION
-        div(attributes: {
-          'style': '''
-    background:#c7e3ef;
-    padding:8px;
-    border-radius:6px;
-    margin-top:6px;
-    font-size:13px;
-    '''
-        }, [
-          text('Salt Composition'),
-          br(),
-          text(product.name.isNotEmpty ? product.name : 'N/A')
-        ]),
-
-        /// PRICE ROW
-        div(classes: 'price-row', attributes: {
-          'style': 'display:flex;align-items:center;gap:8px;margin-top:6px;'
-        }, [
-          span(classes: 'price-main', attributes: {
-            'style': 'font-size:18px;font-weight:600;color:#000;'
-          }, [
-            text('₹${product.price}')
-          ]),
-
-          if (mrp > price)
-            span(attributes: {
-              'style': 'text-decoration:line-through;color:#888;font-size:13px;'
-            }, [
-              text('MRP ₹${product.regularPrice}')
-            ])
-        ]),
-
-        /// DISCOUNT UNDER PRICE
         if (discount > 0)
-          span(attributes: {
-            'style': 'color:#2c4374;font-size:13px;font-weight:600;'
+          div(attributes: {
+            'style': '''
+            position:absolute;
+            top:8px;
+            left:8px;
+            background:#d4edda;
+            color:#155724;
+            padding:4px 10px;
+            border-radius:20px;
+            font-size:12px;
+            font-weight:600;
+            '''
           }, [
             text('$discount% OFF')
           ]),
 
-        /// ADD BUTTON
         div(attributes: {
-          'style': 'margin-top:6px;'
+          'style': '''
+          height:150px;
+          background:#f4f6f8;
+          border-radius:12px;
+          display:flex;
+          align-items:center;
+          justify-content:center;
+          overflow:hidden;
+          '''
         }, [
-          button(
-            classes: 'btn-add',
-            attributes: {
-              'style':
-                  'background:#2c4374;color:white;border:none;padding:8px 14px;border-radius:8px;display:flex;align-items:center;gap:5px;cursor:pointer;'
-            },
-            events: {
-              'click': (e) {
-                (e as dynamic).stopPropagation?.call();
-                (e as dynamic).preventDefault?.call();
-                onAdd();
-                context.push('/cart');
-              }
-            },
-            [
-              span(classes: 'material-symbols-outlined', [
-                text('add_shopping_cart')
-              ]),
-              text(' Add')
-            ],
-          )
-        ])
-      ])
+          if (product.imageUrl.isNotEmpty)
+            img(src: product.imageUrl, attributes: {
+              'style': 'max-width:100%;max-height:100%;object-fit:contain;'
+            })
+          else
+            span([text('No Image')])
+        ]),
+      ]),
+
+      /// NAME
+      div(attributes: {
+        'style': 'font-weight:700;font-size:16px;'
+      }, [
+        text(product.name)
+      ]),
+
+      /// PACK + BRAND
+      div(attributes: {
+        'style': 'font-size:13px;color:#666;'
+      }, [
+        text(
+          '${product.packSize.isNotEmpty ? product.packSize : ''}'
+          '${product.packSize.isNotEmpty && product.brand.isNotEmpty ? ' • ' : ''}'
+          '${product.brand}'
+        )
+      ]),
+
+      /// PRICE ROW
+      div(attributes: {
+        'style': 'display:flex;align-items:center;justify-content:space-between;'
+      }, [
+
+        /// LEFT: PRICE
+        div([
+          span(attributes: {
+            'style': 'font-size:22px;font-weight:700;'
+          }, [
+            text('₹${price.toStringAsFixed(0)}')
+          ]),
+
+          if (mrp > price)
+            span(attributes: {
+              'style': 'margin-left:8px;color:#888;text-decoration:line-through;font-size:14px;'
+            }, [
+              text('₹${mrp.toStringAsFixed(0)}')
+            ]),
+        ]),
+
+        /// RIGHT: UNIT PRICE
+        if (unitPrice != null)
+          span(attributes: {
+            'style': 'color:#28a745;font-weight:600;font-size:14px;'
+          }, [
+            text('₹${unitPrice.toStringAsFixed(2)} / unit')
+          ]),
+      ]),
+
+      /// STATUS (if needed)
+      if (product.isOutOfStock || product.isNotForSale)
+        div(attributes: {
+          'style':
+              'font-size:12px;font-weight:600;color:${product.isNotForSale ? '#856404' : '#721c24'};'
+        }, [
+          text(product.isNotForSale
+              ? 'NOT FOR SALE'
+              : 'OUT OF STOCK')
+        ]),
+
+      /// BUTTON
+      button(
+        attributes: {
+          'style': '''
+          width:100%;
+          padding:12px;
+          border-radius:12px;
+          border:none;
+          font-weight:600;
+          font-size:15px;
+          ${isDisabled
+              ? 'background:#e0e0e0;color:#888;cursor:not-allowed;'
+              : 'background:#1f3b73;color:white;cursor:pointer;'}
+          '''
+        },
+        events: isDisabled
+            ? {}
+            : {
+                'click': (e) {
+                  (e as dynamic).stopPropagation?.call();
+                  (e as dynamic).preventDefault?.call();
+
+                  onAdd();
+                  context.push('/cart');
+                }
+              },
+        [
+          text(product.isNotForSale
+              ? 'Not for Sale'
+              : product.isOutOfStock
+                  ? 'Out of Stock'
+                  : '+ Add to Cart')
+        ],
+      )
     ]);
 
-    if (product.id <= 0) {
-      return cardBody;
-    }
+    if (product.id <= 0) return card;
 
     return Link(
       to: '/product/${product.id}',
-      child: cardBody,
+      child: card,
     );
   }
 }
