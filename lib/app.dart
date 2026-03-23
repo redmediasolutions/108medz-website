@@ -49,7 +49,7 @@ class App extends StatelessComponent {
           path: '/cart',
           builder: (context, state) => CartPage(
             cart: CartStore.items,
-            onBack: () => context.push('/'),
+            onBack: () => context.back(),
           ),
         ),
         Route(path: '/webview', builder: (context, state) => const WebViewPage()),

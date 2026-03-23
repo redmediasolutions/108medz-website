@@ -12,7 +12,6 @@ import 'package:medzsite/components/header.dart';
 import 'package:medzsite/components/product_card.dart';
 import 'package:medzsite/model/cart_item.dart';
 import 'package:medzsite/model/products.dart';
-import 'package:medzsite/pages/cart_page.dart';
 import 'package:medzsite/pages/health_Post.dart';
 import 'package:medzsite/pages/reels.dart';
 import 'package:medzsite/store/cart_store.dart';
@@ -33,20 +32,12 @@ class _HomePageState extends State<HomePage> {
   String _searchQuery = '';
 
   bool _isLoading = true;
-  bool _showCart = false;
   bool _loadingHomeProducts = false;
   int? _homeCategoryId;
   bool _showLoginPopup = false;
 
   @override
   Component build(BuildContext context) {
-    if (_showCart) {
-      return CartPage(
-        cart: CartStore.items,
-        onBack: () => setState(() => _showCart = false),
-      );
-    }
-
     if (showPrescriptionPopup)  _prescriptionPopup();
     
 if (showCallPopup) _callPopup();
@@ -71,7 +62,12 @@ if (showCallPopup) _callPopup();
       },
       builder: (context) {
         return div(classes: 'main-wrapper', [
-          HomeHeader(cartCount: CartStore.items.length, onSearch: (value) => setState(() => _searchQuery = value), onCartTap: () => setState(() => _showCart = true), onProfileTap: () => context.push('/profile')),
+          HomeHeader(
+            cartCount: CartStore.items.length,
+            onSearch: (value) => setState(() => _searchQuery = value),
+            onCartTap: () => context.push('/cart'),
+            onProfileTap: () => context.push('/profile'),
+          ),
           main_(classes: 'page-shell', [
             HeroSection(context),
             HomeActions(onPrescriptionTap: () => setState(() { showPrescriptionPopup = true; }), onCallTap: () => setState(() { showCallPopup = true; })),
