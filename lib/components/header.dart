@@ -39,7 +39,7 @@ class HomeHeader extends StatelessComponent {
           ),
         ]),
 
-        div(classes: 'search-bar', [
+        /*div(classes: 'search-bar', [
           input(classes: 'search-input', attributes: {
             'placeholder': 'Search medicines...',
             'type': 'text'
@@ -50,7 +50,7 @@ class HomeHeader extends StatelessComponent {
             }
           }),
           span(classes: 'material-symbols-outlined search-icon', [text('search')])
-        ]),
+        ]),*/
 
         nav(classes: 'nav-actions', [
           _navBtn('assignment', 'Orders'),

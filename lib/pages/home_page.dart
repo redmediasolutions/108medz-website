@@ -390,7 +390,7 @@ if (showCallPopup) _callPopup();
   }
 
   Future<void> _loadHomeCategoryProducts(int categoryId) async {
-    final results = await _apiService.fetchProductsByCategory(categoryId);
+    final results = await _apiService.fetchProductsByCategory(78);
     if (!mounted) return;
     setState(() {
       _products = results;
