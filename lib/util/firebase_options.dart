@@ -6,6 +6,7 @@ class DefaultFirebaseOptions {
       apiKey: 'AIzaSyDs7aCWHGl6V6_4B3_PA3NPpMLjhxJehKs',
       authDomain: 'medz-9eda1.firebaseapp.com',
       projectId: 'medz-9eda1',
+      databaseURL: 'https://medz-9eda1-default-rtdb.firebaseio.com',
       storageBucket: 'medz-9eda1.firebasestorage.app',
       messagingSenderId: '61765534445',
       appId: '1:61765534445:web:4e513634e1037d78d002e4',

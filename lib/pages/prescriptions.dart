@@ -1,6 +1,13 @@
 import 'package:jaspr/dom.dart';
 import 'package:jaspr/jaspr.dart';
 import 'package:jaspr_router/jaspr_router.dart';
+import 'dart:async';
+import 'dart:convert';
+import 'package:firebase_dart/firebase_dart.dart';
+import 'package:http/http.dart' as http;
+import '../util/firebase_options.dart';
+import '../util/file_picker.dart';
+import '../util/storage_upload.dart';
 
 class PrescriptionsPage extends StatefulComponent {
   @override
@@ -9,8 +16,69 @@ class PrescriptionsPage extends StatefulComponent {
 
 class _PrescriptionsPageState extends State<PrescriptionsPage> {
   bool showUploadPopup = false;
+  bool _isSaving = false;
+  String _prescriptionName = '';
+  String? _errorText;
+  String? _previewUrl;
+  PickedFileData? _selectedFile;
+  double _uploadProgress = 0;
+  final List<_Prescription> _prescriptions = [];
+  StreamSubscription<User?>? _authSub;
+
+  String get _projectId => DefaultFirebaseOptions.currentPlatform.projectId;
+  String get _apiKey => DefaultFirebaseOptions.currentPlatform.apiKey;
+  static const String _collection = 'Prescription';
+
+  String _resolveStorageBucket() {
+    final bucket = DefaultFirebaseOptions.currentPlatform.storageBucket;
+    if (bucket == null || bucket.isEmpty) {
+      return '$_projectId.appspot.com';
+    }
+    if (bucket.endsWith('.firebasestorage.app')) {
+      return '$_projectId.appspot.com';
+    }
+    return bucket;
+  }
 
   @override
+  void initState() {
+    super.initState();
+    if (Firebase.apps.isNotEmpty) {
+      _primeAuthAndLoad();
+    }
+  }
+
+  void _primeAuthAndLoad() {
+  try {
+    if (Firebase.apps.isEmpty) return;
+    
+    // Check if user is already logged in
+    final user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      _loadPrescriptions();
+    }
+
+    // Listen for changes
+    _authSub = FirebaseAuth.instance.authStateChanges().listen((u) {
+      if (u != null) {
+        _loadPrescriptions();
+      }
+    }, onError: (e) {
+      print("Auth Stream Error: $e");
+      setState(() => _errorText = "Authentication connection failed.");
+    });
+  } catch (e) {
+    print("Firebase Auth initialization failed: $e");
+    setState(() => _errorText = "Could not connect to Auth Service.");
+  }
+}
+
+  @override
+  void dispose() {
+    _authSub?.cancel();
+    super.dispose();
+  }
+
   Component build(BuildContext context) {
     return div(attributes: {
       'style': '''
@@ -30,9 +98,15 @@ class _PrescriptionsPageState extends State<PrescriptionsPage> {
         _buildHeader(context),
 
         // Prescription List
-        div([
-          _rxCard('dfgh', '1770710703657', 'https://via.placeholder.com/100x70/8FA382/FFFFFF'),
-        ]),
+        if (_prescriptions.isEmpty)
+          div(attributes: {'style': 'color:#666;margin-bottom:16px;'}, [
+            text('No prescriptions yet.')
+          ])
+        else
+          div([
+            for (final rx in _prescriptions)
+              _rxCard(rx.name, rx.displayId, rx.imageUrl),
+          ]),
 
         // Trigger Button
         button(
@@ -86,7 +160,11 @@ class _PrescriptionsPageState extends State<PrescriptionsPage> {
               border-radius: 15px; font-size: 16px; margin-bottom: 20px;
               outline: none; box-sizing: border-box;
             '''
-          }
+          },
+          events: {
+            'input': (event) =>
+                setState(() => _prescriptionName = ((event.target as dynamic).value ?? '').toString())
+          },
         ),
 
         // Grey Selection Box
@@ -97,19 +175,90 @@ class _PrescriptionsPageState extends State<PrescriptionsPage> {
             justify-content: center; color: #666; font-size: 16px;
             margin-bottom: 20px;
           '''
-        }, [text('No prescription selected')]),
+        }, [
+          if (_previewUrl == null)
+            text('No prescription selected')
+          else
+            img(src: _previewUrl!, attributes: {
+              'style': 'width:100%;height:100%;object-fit:cover;border-radius:18px;'
+            })
+        ]),
+
+        if (_uploadProgress > 0 && _uploadProgress < 1)
+          div(attributes: {
+            'style': 'margin-bottom:16px;'
+          }, [
+            div(attributes: {
+              'style': '''
+              height:8px;background:#e6e6e6;border-radius:999px;overflow:hidden;
+              '''
+            }, [
+              div(attributes: {
+                'style': '''
+                height:100%;width:${(_uploadProgress * 100).toStringAsFixed(0)}%;
+                background:#120063;border-radius:999px;
+                '''
+              }, [])
+            ]),
+            div(attributes: {'style': 'margin-top:6px;font-size:12px;color:#666;'}, [
+              text('Uploading ${( _uploadProgress * 100).toStringAsFixed(0)}%')
+            ])
+          ]),
+
+        if (_errorText != null)
+          div(attributes: {'style': 'color:#b91c1c;margin-bottom:12px;'}, [
+            text(_errorText!)
+          ]),
 
         // Buttons Row (Gallery & Camera)
         div(attributes: {
           'style': 'display: flex; gap: 12px; margin-bottom: 20px;'
         }, [
-          _actionButton('Gallery', 'image'),
-          _actionButton('Camera', 'photo_camera'),
+          _fileActionButton('Gallery', 'image', accept: 'image/*'),
+          _fileActionButton('Camera', 'photo_camera', accept: 'image/*', capture: 'environment'),
         ]),
 
         // Final Submit Button
         button(
-          events: {'click': (_) => setState(() => showUploadPopup = false)},
+          events: {
+            'click': (_) async {
+              if (_isSaving) return;
+              if (_prescriptionName.trim().isEmpty) {
+                setState(() => _errorText = 'Please enter a prescription name.');
+                return;
+              }
+              if (_selectedFile == null) {
+                setState(() => _errorText = 'Please select a prescription image.');
+                return;
+              }
+              setState(() {
+                _isSaving = true;
+                _errorText = null;
+                _uploadProgress = 0;
+              });
+              try {
+                final saved = await _createPrescription();
+                setState(() {
+                  _prescriptions.add(saved);
+                  _prescriptionName = '';
+                  _selectedFile = null;
+                  if (_previewUrl != null) {
+                    revokePreviewUrl(_previewUrl!);
+                  }
+                  _previewUrl = null;
+                  _isSaving = false;
+                  showUploadPopup = false;
+                  _uploadProgress = 0;
+                });
+              } catch (e) {
+                setState(() {
+                  _isSaving = false;
+                  _errorText = 'Upload failed: ${e.toString()}';
+                  _uploadProgress = 0;
+                });
+              }
+            }
+          },
           attributes: {
             'style': '''
               width: 100%; background: #120063; color: white; border: none;
@@ -117,23 +266,9 @@ class _PrescriptionsPageState extends State<PrescriptionsPage> {
               font-weight: 700; cursor: pointer;
             '''
           },
-          [text('Upload Prescription')]
+          [text(_isSaving ? 'Uploading...' : 'Upload Prescription')]
         )
       ])
-    ]);
-  }
-
-  Component _actionButton(String label, String icon) {
-    return button(attributes: {
-      'style': '''
-        flex: 1; background: white; border: 1.5px solid #120063;
-        border-radius: 25px; padding: 12px; display: flex;
-        align-items: center; justify-content: center; gap: 8px;
-        font-weight: 600; color: #120063; cursor: pointer;
-      '''
-    }, [
-      span(classes: 'material-symbols-outlined', [text(icon)]),
-      text(label)
     ]);
   }
 
@@ -162,5 +297,188 @@ class _PrescriptionsPageState extends State<PrescriptionsPage> {
         p(attributes: {'style': 'margin: 2px 0 0 0; color: #999; font-size: 14px;'}, [text(id)]),
       ])
     ]);
+  }
+
+  Component _fileActionButton(
+    String textLabel,
+    String icon, {
+    required String accept,
+    String? capture,
+  }) {
+    return label(attributes: {
+      'style': '''
+        flex: 1; background: white; border: 1.5px solid #120063;
+        border-radius: 25px; padding: 12px; display: flex;
+        align-items: center; justify-content: center; gap: 8px;
+        font-weight: 600; color: #120063; cursor: pointer;
+      '''
+    }, [
+      span(classes: 'material-symbols-outlined', [text(icon)]),
+      text(textLabel),
+      input(
+        type: InputType.file,
+        attributes: {
+          'accept': accept,
+          if (capture != null) 'capture': capture,
+          'style': 'display:none;',
+        },
+        events: {
+          'change': (event) async {
+            final picked = await pickFileFromEvent(event);
+            if (picked == null) return;
+            setState(() {
+              if (_previewUrl != null) revokePreviewUrl(_previewUrl!);
+              _selectedFile = picked;
+              _previewUrl = picked.previewUrl;
+              _errorText = null;
+            });
+          }
+        },
+      ),
+    ]);
+  }
+
+  Future<void> _loadPrescriptions() async {
+    if (Firebase.apps.isEmpty) return;
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) return;
+    await user.getIdToken(true);
+    final token = await user.getIdToken();
+    final uri = Uri.parse(
+      'https://firestore.googleapis.com/v1/projects/$_projectId/databases/(default)/documents:runQuery?key=$_apiKey',
+    );
+    final body = jsonEncode({
+      'structuredQuery': {
+        'from': [
+          {'collectionId': _collection}
+        ],
+        'where': {
+          'fieldFilter': {
+            'field': {'fieldPath': 'uid'},
+            'op': 'EQUAL',
+            'value': {'stringValue': user.uid}
+          }
+        }
+      }
+    });
+    final res = await http.post(
+      uri,
+      headers: {
+        'Authorization': 'Bearer $token',
+        'Content-Type': 'application/json',
+      },
+      body: body,
+    ).timeout(const Duration(seconds: 10));
+    if (res.statusCode != 200) return;
+    final data = jsonDecode(res.body) as List<dynamic>;
+    final loaded = <_Prescription>[];
+    for (final item in data) {
+      final map = item as Map<String, dynamic>;
+      final doc = map['document'] as Map<String, dynamic>?;
+      if (doc == null) continue;
+      loaded.add(_Prescription.fromFirestoreDoc(doc));
+    }
+    loaded.sort((a, b) => a.createdAt.compareTo(b.createdAt));
+    if (mounted) {
+      setState(() {
+        _prescriptions
+          ..clear()
+          ..addAll(loaded);
+      });
+    }
+  }
+
+  Future<_Prescription> _createPrescription() async {
+    if (Firebase.apps.isEmpty) {
+      throw Exception('Firebase not initialized');
+    }
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) {
+      throw Exception('No user');
+    }
+    if (_selectedFile == null) {
+      throw Exception('No file selected');
+    }
+    final token = await user.getIdToken();
+    final bucket = _resolveStorageBucket();
+    if (bucket.isEmpty) {
+      throw Exception('Missing storage bucket');
+    }
+    final objectPath =
+        'prescriptions/${user.uid}/${DateTime.now().millisecondsSinceEpoch}_${_selectedFile!.name}';
+    final imageUrl = await uploadToFirebaseStorage(
+      bucket: bucket,
+      objectPath: objectPath,
+      file: _selectedFile!,
+      idToken: token,
+      onProgress: (value) {
+        if (!mounted) return;
+        setState(() => _uploadProgress = value.clamp(0, 1));
+      },
+    );
+    final uri = Uri.parse(
+      'https://firestore.googleapis.com/v1/projects/$_projectId/databases/(default)/documents/$_collection?key=$_apiKey',
+    );
+    final now = DateTime.now();
+    final body = jsonEncode({
+      'fields': {
+        'name': {'stringValue': _prescriptionName.trim()},
+        'uid': {'stringValue': user.uid},
+        'phone': {'stringValue': user.phoneNumber ?? ''},
+        'imageUrl': {'stringValue': imageUrl},
+        'storagePath': {'stringValue': objectPath},
+        'createdAt': {'timestampValue': now.toUtc().toIso8601String()},
+      }
+    });
+    final res = await http.post(
+      uri,
+      headers: {
+        'Authorization': 'Bearer $token',
+        'Content-Type': 'application/json',
+      },
+      body: body,
+    ).timeout(const Duration(seconds: 10));
+    if (res.statusCode != 200) {
+      throw Exception('Firestore create failed: ${res.statusCode}');
+    }
+    final doc = jsonDecode(res.body) as Map<String, dynamic>;
+    return _Prescription.fromFirestoreDoc(doc);
+  }
+}
+
+class _Prescription {
+  final String id;
+  final String name;
+  final String imageUrl;
+  final int createdAt;
+
+  const _Prescription({
+    required this.id,
+    required this.name,
+    required this.imageUrl,
+    required this.createdAt,
+  });
+
+  String get displayId => createdAt > 0 ? createdAt.toString() : id;
+
+  factory _Prescription.fromFirestoreDoc(Map<String, dynamic> doc) {
+    final namePath = (doc['name'] ?? '').toString();
+    final id = namePath.split('/').isNotEmpty ? namePath.split('/').last : '';
+    final fields = doc['fields'] as Map<String, dynamic>? ?? {};
+    String _str(String key) =>
+        (fields[key]?['stringValue'] ?? '').toString();
+    int _ts(String key) {
+      final raw = fields[key]?['timestampValue'] as String?;
+      if (raw == null || raw.isEmpty) return 0;
+      return DateTime.tryParse(raw)?.millisecondsSinceEpoch ?? 0;
+    }
+    return _Prescription(
+      id: id,
+      name: _str('name'),
+      imageUrl: _str('imageUrl').isEmpty
+          ? 'https://via.placeholder.com/100x70/8FA382/FFFFFF'
+          : _str('imageUrl'),
+      createdAt: _ts('createdAt'),
+    );
   }
 }

@@ -3,10 +3,11 @@ import 'dart:html' as html;
 
 import 'package:firebase_dart/firebase_dart.dart';
 import 'package:http/http.dart' as http;
+import 'package:medzsite/util/firebase_options.dart';
 
 const _storageKeyGuest = 'medz_cart_guest';
-const _projectId = 'medz-9eda1';
-const _apiKey = 'AIzaSyDs7aCWHGL6V6_4B3_PA3NPpMLjhxJehKs';
+final _projectId = DefaultFirebaseOptions.currentPlatform.projectId;
+final _apiKey = DefaultFirebaseOptions.currentPlatform.apiKey;
 
 class CartPersistenceImpl {
   static String _storageKeyFor(User? user) {
@@ -21,7 +22,7 @@ class CartPersistenceImpl {
     }
 
     final uri = Uri.parse(
-      'https://firestore.googleapis.com/v1/projects/$_projectId/databases/(default)/documents/Carts/${user.uid}?key=$_apiKey',
+      'https://firestore.googleapis.com/v1/projects/$_projectId/databases/(default)/documents/carts/${user.uid}?key=$_apiKey',
     );
 
     try {
@@ -55,7 +56,7 @@ class CartPersistenceImpl {
     if (user == null) return;
 
     final uri = Uri.parse(
-      'https://firestore.googleapis.com/v1/projects/$_projectId/databases/(default)/documents/Carts/${user.uid}?key=$_apiKey&updateMask.fieldPaths=json&updateMask.fieldPaths=updatedAt',
+      'https://firestore.googleapis.com/v1/projects/$_projectId/databases/(default)/documents/carts/${user.uid}?key=$_apiKey&updateMask.fieldPaths=json&updateMask.fieldPaths=updatedAt',
     );
 
     final body = jsonEncode({
@@ -94,7 +95,7 @@ class CartPersistenceImpl {
 
   static Future<void> _createDoc(User user, String body, String token) async {
     final createUri = Uri.parse(
-      'https://firestore.googleapis.com/v1/projects/$_projectId/databases/(default)/documents/Carts?documentId=${user.uid}&key=$_apiKey',
+      'https://firestore.googleapis.com/v1/projects/$_projectId/databases/(default)/documents/carts?documentId=${user.uid}&key=$_apiKey',
     );
     try {
       await http.post(

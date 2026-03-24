@@ -2,10 +2,11 @@ import 'dart:convert';
 
 import 'package:firebase_dart/firebase_dart.dart';
 import 'package:http/http.dart' as http;
+import 'package:medzsite/util/firebase_options.dart';
 
 class UserProfileStore {
-  static const String _projectId = 'medz-9eda1';
-  static const String _apiKey = 'AIzaSyDs7aCWHGL6V6_4B3_PA3NPpMLjhxJehKs';
+  static final String _projectId = DefaultFirebaseOptions.currentPlatform.projectId;
+  static final String _apiKey = DefaultFirebaseOptions.currentPlatform.apiKey;
 
   static String _docUrl(String docId) =>
       'https://firestore.googleapis.com/v1/projects/$_projectId/databases/(default)/documents/Users/$docId?key=$_apiKey';

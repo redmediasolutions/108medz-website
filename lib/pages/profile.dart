@@ -141,7 +141,7 @@ class _ProfilePageState extends State<ProfilePage> {
         }),
 
         _menuItem("Loyalty Points", () {
-          print("Navigate to Rewards");
+          context.push('/loyalty-points');
         }),
 
         _menuItem("Delete your account", () {

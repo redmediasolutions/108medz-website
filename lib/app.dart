@@ -13,9 +13,12 @@ import 'package:medzsite/pages/product_page.dart';
 import 'package:medzsite/pages/allproducts.dart';
 import 'package:medzsite/pages/reels.dart';
 import 'package:medzsite/pages/returnspolicy.dart';
+import 'package:medzsite/pages/success_splash.dart';
 import 'package:medzsite/pages/webview_page.dart';
 import 'package:medzsite/pages/edit_profile.dart';
 import 'package:medzsite/pages/cart_page.dart';
+import 'package:medzsite/pages/loyalty_points.dart';
+import 'package:medzsite/pages/redeem_points.dart';
 import 'package:medzsite/privacypolicy.dart';
 import 'package:medzsite/store/cart_store.dart';
 
@@ -62,7 +65,11 @@ class App extends StatelessComponent {
 
           Route(path: '/edit-profile', builder: (context, state) => const EditProfilePage()),
           Route(path: '/prescriptions', builder: (context, state) => PrescriptionsPage()),
+          Route(path: '/loyalty-points', builder: (context, state) => const LoyaltyPointsPage()),
+          Route(path: '/redeem-points', builder: (context, state) => const RedeemPointsPage()),
           Route(path: '/delete-account', builder: (context, state) => const AccountDeletionPage()),
+          Route(path: '/success', builder: (context, state) => const SuccessSplashPage()),
+
           Route(
             path: '/login',
             builder: (context, state) => MobileLoginPage(),
